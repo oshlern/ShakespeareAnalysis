@@ -1,11 +1,6 @@
-# Category = {plaintext, subsets, analysis}
 # analysis = {actNum, sceneNum, speechNum, lineNum, wordNum, charNum, speakerNum}
-# make one for chapters and pages
 import re
-# form = {'text': 'act\nscene\nspeaker:\nspeech', 'act': 'Act [0-9]*', 'scene': 'Scene #', 'speaker': 'XXX:\n'}
-# fix formatingg
-# [0 lineNum, 1 'Speaker', 2 'Text', 3 actNum, 4 sceneNum, 5 charNum, 6 wordNum],
-# [3676, 'othello', 'O villain!\n', ' O FLN ', ' o villain ', 5, 2, 11, 2],
+
 # def appearNum(str, substr):
 #     return(len(re.finditer(substr, str)))
 def openData(doc):
@@ -13,50 +8,62 @@ def openData(doc):
     text = text.read()
     return text
 
-def textFormat(text, form):
-    text = {'text': text}
-    #act = {re.form['act']: '@ |'}
-    # stage = text    #make a parser to separate the state instructions from stats
-    # stage = re.sub('.*[([.*]).*]*')
-    # def splitBy(text, form):
-    #     text = re.sub(form, '\1\|', text)
-    #     text = re.split('\|', text)[1:]
-    # correct capitalization for speakers
-    text['acts'] = re.split(form['act'], text['text'])[1:]
+def textParse(text, form):
+    text = {'plaintext': text}
+
+    totalLineNum = 1
+    chars = {}
+    #make a parser to separate the state instructions from stats
+    text['acts'] = re.split(form['act'], text['plaintext'])[1:]
     for actNum in range(len(text['acts'])):
         act = text['acts'][actNum]
-        act = {'text': act, 'scenes': re.split(form['scene'], act)[1:]}
+        act = {'plaintext': act, 'scenes': re.split(form['scene'], act)[1:]}
         for sceneNum in range(len(act['scenes'])):
-            scene = {'text': act['scenes'][sceneNum]}
-            scene['speeches'] = scene['text'].split('|speaker|', re.sub(form['speaker'], '\|speaker\|$1\|lines\|'))
+            scene = {'plaintext': act['scenes'][sceneNum]}
+            scene['speeches'] = scene['plaintext'].split('|speaker|', re.sub(form['speaker'], '\|speaker\|$1\|lines\|'))
+            currentLineNum = 1
             for speechNum in range(len(scene['speeches'])):
-                speech = {'text': scene['speeches'][speechNum]}
-                speakerAndLines = speech['text'].split('|lines|')
+                speech = {'plaintext': scene['speeches'][speechNum]}
+                speakerAndLines = speech['plaintext'].split('|lines|')
                 speech['speaker'] = speakerAndLines[0]
-                speech['lines'] = speakerAndLines[1]
+                speech['speech'] = {'plaintext': speakerAndLines[1]}
+                speech['speech']['lines'] = speech['speech']['plaintext'].split('\n')
+                speech['speech']['lines'].pop()
+                for lineNum in speech['speech']['lines']:
+                    line = {'plaintext': speech['speech']['lines'][lineNum]}
+                    line['analysis'] = {'lineNum': currentLineNum, 'totalLineNum': totalLineNum}
+                    currentLineNum++
+                    totalLineNum++
+                    # figure out how to split into words when using punctuation and hyphens
+
+                scene['speeches'][speechNum] = speech
+            act['scenes'][sceneNum] = scene
+        text['acts'][actNum] = act
 
     # text = re.sub('(.*):\n', '\|\1@\n', text)
     # text = text.split('|')
     return text
 
 def speechFormat(speech, totalLineNum):
-    # speech = {'speaker': speech[0], 'text': speech[1]}
+    # speech = {'speaker': speech[0], 'plaintext': speech[1]}
     speech['totalLineNum'] = totalLineNum
-    speech['lines'] = speech['text'].split('\n')
+    speech['lines'] = speech['plaintext'].split('\n')
     speech['lines'].pop()
     speech['lines']=[]
-    for lineNum in range(len(speech['text'])):
-        speech['lines'][lineNum] = {'line': lineNum, 'text': speech['text'][lineNum]}
-    speech['lineNum'] = len(re.finditer('\n', speech['text']))
-    speech['wordNum'] = len(re.finditer(' ', speech['text']))+speech['lineNum']
-    speech['charNum'] = len(speech['text'])-speech['lineNum']
+    for lineNum in range(len(speech['plaintext'])):
+        speech['lines'][lineNum] = {'line': lineNum, 'plaintext': speech['plaintext'][lineNum]}
+    speech['lineNum'] = len(re.finditer('\n', speech['plaintext']))
+    speech['wordNum'] = len(re.finditer(' ', speech['plaintext']))+speech['lineNum']
+    speech['charNum'] = len(speech['plaintext'])-speech['lineNum']
     # add acts and scenes
-    # add line numbers to speech[]'text']
+    # add line numbers to speech[]'plaintext']
     totalLineNum+ = speech['lineNum']
     return speech
 
 def getData():
-    form = {'act': 'Act \d*:\n', 'scene': 'Scene \d*:\n', 'speaker': '([^\n]+):\n'}
+    form = {'act': 'Act (\d+):\n', 'scene': 'Scene (\d+):\n', 'speaker': '(\w+):\n', 'line': '([^\n]+)\n'}
+    # lose case sensitivity of acts and scenes
+    # convert to Xxx case sensitivity
     # form['speech'] = form['speaker']+''
     text = openData('trueothello')
     text = textFormat(text, form)
@@ -79,7 +86,7 @@ def getData():
                 text[i] = speech
                 # totalLineNum = speech['totalLineNum']
                 speaker = speech['speaker']
-                # text = speech['text']
+                # text = speech['plaintext']
                 act = speech['act']
                 scene = speech['scene']
                 # charNum = speech['charNum']
@@ -100,8 +107,8 @@ def getData():
                     for char in chars.keys():
                         chars[char][act][scene] = []
 
-                chars[speaker][act][scene].append({'totalLineNum': speech['totalLineNum'], 'text': speech['text'], 'charNum': speech['charNum'], 'wordNum': speech['wordNum']})
-                sortedText[act][scene].append({'totalLineNum': speech['totalLineNum'], 'speaker': speaker, 'text': speech['text'], 'charNum': speech['charNum'], 'wordNum': speech['wordNum']})
+                chars[speaker][act][scene].append({'totalLineNum': speech['totalLineNum'], 'plaintext': speech['plaintext'], 'charNum': speech['charNum'], 'wordNum': speech['wordNum']})
+                sortedText[act][scene].append({'totalLineNum': speech['totalLineNum'], 'speaker': speaker, 'plaintext': speech['plaintext'], 'charNum': speech['charNum'], 'wordNum': speech['wordNum']})
     return {'text': text, 'chars': chars}
 data = getData()
 # text = data['text']
