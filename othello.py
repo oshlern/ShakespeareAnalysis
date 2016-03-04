@@ -1,7 +1,7 @@
 # properties = {actNum, sceneNum, speechNum, lineNum, wordNum, charNum, speakerNum}
 import re
 
-form = {'act': 'Act \d+:\n', 'scene': 'Scene \d+:\n', 'speaker': '(\w+):\n', 'line': '([^\n]+)\n'}
+form = {'act': r'Act \d+:\n', 'scene': r'Scene \d+:\n', 'speaker': r'\|(\w+):\n', r'line': '(1^\n]+)\n'}
 
 # def appearNum(str, substr):
 #     return(len(re.finditer(substr, str)))
@@ -26,8 +26,9 @@ def textParse(text, form):
         # print act
         for sceneNum in range(len(act['scenes'])):
             scene = {'plaintext': act['scenes'][sceneNum]}
-            speakerForm = re.sub(form['speaker'], '|speaker|$1|lines|', scene['plaintext'])
-            scene['speeches'] = speakerForm.split('|speaker|')
+            speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', scene['plaintext'])
+            # print speakerForm
+            scene['speeches'] = speakerForm.split('|speaker|')[1:]
             scene['properties'] = {'lengthSpeeches': len(scene['speeches'])}
             currentLineNum = 1
             # print scene
@@ -35,20 +36,20 @@ def textParse(text, form):
                 speech = {'plaintext': scene['speeches'][speechNum]}
                 # print  speech
                 speakerAndLines = speech['plaintext'].split('|lines|')
-                print speakerAndLines
-                print '\n'
+                # print speakerAndLines
+                # print '\n'
                 speech['speaker'] = speakerAndLines[0]
                 speech['speech'] = {'plaintext': speakerAndLines[1]}
                 speech['speech']['lines'] = speech['speech']['plaintext'].split('\n')
                 speech['speech']['lines'].pop()
-                speech['properties'] = {'startLineNum': currentLineNum, 'startTotalLineNum': totalLineNum}
-                for lineNum in speech['speech']['lines']:
+                speech['properties'] = {'startLineNum': currentLineNum, 'startTotalLineNum': totalLineNum, 'lengthLines': len(speech['speech']['lines'])}
+                for lineNum in range(speech['properties']['lengthLines']):
                     line = {'plaintext': speech['speech']['lines'][lineNum]}
                     line['properties'] = {'lineNum': currentLineNum, 'totalLineNum': totalLineNum}
                     currentLineNum += 1
                     totalLineNum += 1
                     speech['speech']['lines'][lineNum] = line
-                speech['properties']['lengthLines'] = currentLineNum - speech['properties'][startLineNum]
+                # speech['properties']['lengthLines'] = currentLineNum - speech['properties'][startLineNum]
                 speech['properties']['endLineNum'] = currentLineNum-1
                 speech['properties']['endTotalLineNum'] = currentLineNum-1
                 scene['speeches'][speechNum] = speech
@@ -132,7 +133,6 @@ data = textParse(text, form)
 #     return {'text': text, 'chars': chars}
 # text = data['text']
 # chars = data['chars']
-# print data['acts'] #[0]['scenes'][0]['plaintext']
-
+print data['acts'][1]['scenes'][0]['speeches'][13]
 
 # get acts and scenes in raw data
