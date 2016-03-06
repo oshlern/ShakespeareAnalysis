@@ -1,7 +1,8 @@
 # properties = {actNum, sceneNum, speechNum, lineNum, wordNum, charNum, speakerNum}
 # fix line spacing with tabs
 import re
-
+# Make print function to replace the 99.99% of storage used by deleting plaintext for everything but characters and speakers
+# change variables of currentLineNum and such to changing variables within the dictionary
 form = {'act': r'Act \d+:\n', 'scene': r'Scene \d+:\n', 'speaker': r'(\w+):\n', r'line': '(1^\n]+)\n'}
 
 # def appearNum(str, substr):
@@ -27,8 +28,9 @@ def textParse(text, form):
         act = text['acts'][actNum]
         act = {'plaintext': act, 'scenes': re.split(form['scene'], act)[1:]}
         act['properties'] = {'lengthScenes': len(act['scenes'])}
-        act['properties']['startSpeech'] = text['properties'][lengthLines]
-        actLineStart = text['properties'][lengthLines]
+        act['properties']['startLine'] = text['properties']['lengthLines']
+        act['properties']['startSpeech'] = text['properties']['lengthSpeeches']
+        # actLineStart = text['properties']['lengthLines']
         # start = {'act': [charNum, wrodNum, lineNum, speechNum, sceneNum], }
         for sceneNum in range(act['properties']['lengthScenes']):
             scene = {'plaintext': act['scenes'][sceneNum]}
@@ -60,8 +62,8 @@ def textParse(text, form):
             scene['properties']['lengthLines'] = currentLineNum
             scene['properties']['endTotalLineNum'] = totalLineNum
             act['scenes'][sceneNum] = scene
-        act['properties']['lengthLines'] = totalLineNum-actLineStart
-        act['properties']['lengthSpeeches'] = totalSpeechNum-actSpeechStart
+        act['properties']['lengthLines'] = totalLineNum-act['properties']['startLine']
+        act['properties']['lengthSpeeches'] = totalSpeechNum-act['properties']['startSpeech']
         text['acts'][actNum] = act
     text['properties']['lengthLines'] = totalLineNum
     text['properties']['lengthSpeeches'] = totalSpeechNum
