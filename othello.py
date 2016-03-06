@@ -14,26 +14,29 @@ def openData(doc):
 def textParse(text, form):
     text = {'plaintext': text}
 
-    totalLineNum = 1
-    totalSpeechNum = 1
-    totalSceneNum = 1
+    totalLineNum = 0
+    totalSpeechNum = 0
+    totalSceneNum = 0
+    # total = {charNum, wordNum, lineNum, speechNum, sceneNum}
+    # text['properties'] = {charNum, wordNum, lineNum, speechNum, sceneNum}
     speakers = {}
     #make a parser to separate the state instructions from stats
     text['acts'] = re.split(form['act'], text['plaintext'])[1:]
-    text['properties'] = {'lengthActs': len(text['acts'])}
+    text['properties'] = {'lengthActs': len(text['acts']), 'lengthScenes': 0, 'lengthSpeeches': 0, 'lengthLines': 0, 'lengthWords': 0, 'lengthChars': 0}
     for actNum in range(text['properties']['lengthActs']):
         act = text['acts'][actNum]
         act = {'plaintext': act, 'scenes': re.split(form['scene'], act)[1:]}
         act['properties'] = {'lengthScenes': len(act['scenes'])}
-        actSpeechStart = totalSpeechNum
-        actLineStart = totalLineNum
+        act['properties']['startSpeech'] = text['properties'][lengthLines]
+        actLineStart = text['properties'][lengthLines]
+        # start = {'act': [charNum, wrodNum, lineNum, speechNum, sceneNum], }
         for sceneNum in range(act['properties']['lengthScenes']):
             scene = {'plaintext': act['scenes'][sceneNum]}
             speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', scene['plaintext'])
             scene['speeches'] = speakerForm.split('|speaker|')[1:]
             scene['properties'] = {'lengthSpeeches': len(scene['speeches']), 'startTotalLineNum': totalLineNum}
             totalSpeechNum += scene['properties']['lengthSpeeches']
-            currentLineNum = 1
+            currentLineNum = 0
             for speechNum in range(scene['properties']['lengthSpeeches']):
                 # speech = {'plaintext': scene['speeches'][speechNum]} # plaintext has |lines|
                 speakerAndLines = scene['speeches'][speechNum].split('|lines|')
@@ -44,17 +47,18 @@ def textParse(text, form):
                 speech['lines'].pop() #extra newline on the end
                 speech['properties'] = {'startLineNum': currentLineNum, 'startTotalLineNum': totalLineNum, 'lengthLines': len(speech['lines'])}
                 for lineNum in range(speech['properties']['lengthLines']):
-                    line = {'plaintext': speech['lines'][lineNum]}
-                    line['properties'] = {'lineNum': currentLineNum, 'totalLineNum': totalLineNum}
                     currentLineNum += 1
                     totalLineNum += 1
+                    line = {'plaintext': speech['lines'][lineNum]}
+                    line['properties'] = {'lineNum': currentLineNum, 'totalLineNum': totalLineNum}
                     speech['lines'][lineNum] = line
                     # figure out how to split into words when using punctuation and hyphens
-                speech['properties']['endLineNum'] = currentLineNum-1
-                speech['properties']['endTotalLineNum'] = totalLineNum-1
+                speech['properties']['endLineNum'] = currentLineNum
+                speech['properties']['endTotalLineNum'] = totalLineNum
+                # speechNum
                 scene['speeches'][speechNum] = speech
-            scene['properties']['lengthLines'] = currentLineNum-1
-            scene['properties']['endTotalLineNum'] = totalLineNum-1
+            scene['properties']['lengthLines'] = currentLineNum
+            scene['properties']['endTotalLineNum'] = totalLineNum
             act['scenes'][sceneNum] = scene
         act['properties']['lengthLines'] = totalLineNum-actLineStart
         act['properties']['lengthSpeeches'] = totalSpeechNum-actSpeechStart
@@ -68,4 +72,5 @@ def textParse(text, form):
 text = openData('text')
 data = textParse(text, form)
 
-print data['acts'][1]['scenes'][0]['speeches'][13]
+# print data['acts'][1]['scenes'][0]['speeches'][13]['plaintext']
+print data['properties']
