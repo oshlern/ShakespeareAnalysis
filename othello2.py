@@ -83,6 +83,7 @@ def textParse(text, form):
                 scene['lengthSpeeches'] += 1
 
                 speakerAndLines = speech.split('|lines|')
+                # print speakerAndLines
                 lines = speakerAndLines[1].split('\n')[:-1]
 
                 speech = {
@@ -124,9 +125,17 @@ def textParse(text, form):
                     speech['lengthChars'] += line['lengthChars']
                     speech[speech['lengthLines']] = line
 
-                if not speaker in speakers:
-                    speakers[speaker] = {text['lengthActs']: {act['lengthScenes']: {}}}
-                speakers[speaker][text['lengthActs']][text['']]
+                # record in speakers
+                # more efficient with less if statements
+                # make dictionary rather than half empty arrays
+                print speech['speaker']
+                if not speech['speaker'] in speakers:
+                    speakers[speech['speaker']] = {'occurence': []}  # {text['lengthActs']: {act['lengthScenes']: {}}}
+                while len(speakers[speech['speaker']]['occurence'])!=text['lengthActs']:
+                    speakers[speech['speaker']]['occurence'] += [[]]
+                while len(speakers[speech['speaker']]['occurence'][text['lengthActs']-1])!=act['lengthScenes']:
+                    speakers[speech['speaker']]['occurence'][text['lengthActs']-1] += [[]]
+                speakers[speech['speaker']]['occurence'][text['lengthActs']-1][act['lengthScenes']-1] += [scene['lengthSpeeches']]
 
                 scene['lengthLines'] += speech['lengthLines']
                 scene['lengthWords'] += speech['lengthWords']
@@ -145,10 +154,11 @@ def textParse(text, form):
         text['lengthWords'] += act['lengthWords']
         text['lengthChars'] += act['lengthChars']
         text[text['lengthActs']] = act
+        text['speakers'] = speakers
     # generalize the format and include different ones so that you can make a recursive function for the for loops
     return text
 
 text = openData('text')
 text = textParse(text, form)
 
-# print text
+print text['speakers']

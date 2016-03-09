@@ -28,3 +28,8 @@ c = {
     'high': 34,
     'donuts': 23
 }
+
+
+for i in range(4):
+    a += [[]]
+    print len(a)
