@@ -10,3 +10,21 @@ fib = fib.split('|')
 #   a[num] = 0
 print fib
 print a
+
+a = [0,1,2,3,4,5]
+print a[2:4]
+
+
+words = ['AS-dc SFBKK', 'a', 'saj']
+word = 'b'
+# print words.lower()
+if not word in words:
+    print 'hi'
+
+for char in 'abcdefg':
+    print char
+
+c = {
+    'high': 34,
+    'donuts': 23
+}
