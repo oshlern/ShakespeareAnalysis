@@ -8,7 +8,7 @@ import re
 form = {
     'act': r'Act \d+:\n',
     'scene': r'Scene \d+:\n',
-    'speaker': r'(\w+):\n',
+    'speaker': r'\n(\w+):\n',
     'line': r'([^\n]+)\n'
 }
 
@@ -67,8 +67,9 @@ def textParse(text, form):
 
         for scene in scenes:
             act['lengthScenes'] += 1
-
-            speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', scene)
+            if text['lengthActs']==1 and act['lengthScenes']==3:
+                print scene
+            speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', '\n' + scene)
             speeches = speakerForm.split('|speaker|')[1:]
 
             scene = {
@@ -84,7 +85,7 @@ def textParse(text, form):
 
                 speakerAndLines = speech.split('|lines|')
                 # print speakerAndLines
-                lines = speakerAndLines[1].split('\n')[:-1]
+                lines = speakerAndLines[1].split('\n') #[:-1]
 
                 speech = {
                     'speaker': speakerAndLines[0],
@@ -125,17 +126,14 @@ def textParse(text, form):
                     speech['lengthChars'] += line['lengthChars']
                     speech[speech['lengthLines']] = line
 
-                # record in speakers
-                # more efficient with less if statements
-                # make dictionary rather than half empty arrays
-                print speech['speaker']
-                if not speech['speaker'] in speakers:
-                    speakers[speech['speaker']] = {'occurence': []}  # {text['lengthActs']: {act['lengthScenes']: {}}}
-                while len(speakers[speech['speaker']]['occurence'])!=text['lengthActs']:
-                    speakers[speech['speaker']]['occurence'] += [[]]
-                while len(speakers[speech['speaker']]['occurence'][text['lengthActs']-1])!=act['lengthScenes']:
-                    speakers[speech['speaker']]['occurence'][text['lengthActs']-1] += [[]]
-                speakers[speech['speaker']]['occurence'][text['lengthActs']-1][act['lengthScenes']-1] += [scene['lengthSpeeches']]
+                if not speech['speaker'] in speakers.keys():
+                    speakers[speech['speaker']] = {text['lengthActs']: {act['lengthScenes']: [scene['lengthSpeeches']]}}
+                elif not text['lengthActs'] in speakers[speech['speaker']].keys():
+                    speakers[speech['speaker']][text['lengthActs']] = {act['lengthScenes']: [scene['lengthSpeeches']]}
+                elif not act['lengthScenes'] in speakers[speech['speaker']][text['lengthActs']].keys():
+                    speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] = [scene['lengthSpeeches']]
+                else:
+                    speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] += [scene['lengthSpeeches']]
 
                 scene['lengthLines'] += speech['lengthLines']
                 scene['lengthWords'] += speech['lengthWords']
@@ -158,7 +156,9 @@ def textParse(text, form):
     # generalize the format and include different ones so that you can make a recursive function for the for loops
     return text
 
-text = openData('text')
-text = textParse(text, form)
+plaintext = openData('text')
+text = textParse(plaintext, form)
 
-print text['speakers']
+# speakers mix with other words at the end
+# some parsing problems
+print text['speakers'].keys()

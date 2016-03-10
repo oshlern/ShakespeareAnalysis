@@ -8,7 +8,7 @@ form = {
     'act': r'Act \d+:\n',
     'scene': r'Scene \d+:\n',
     'speaker': r'(\w+):\n',
-    r'line': '([]^\n]+)\n'
+    r'line': '(1^\n]+)\n'
 }
 
 # def appearNum(str, substr):
