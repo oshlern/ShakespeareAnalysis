@@ -1,10 +1,6 @@
-# properties = {actNum, sceneNum, speechNum, lineNum, wordNum, charNum, speakerNum}
 # fix line spacing with tabs
 # get rid of plaintext
-# make array dictionary combo: act = {1: scene1, 2: scene2 ... 'properties': properties}
 import re
-# Make print function to replace the 99.99% of storage used by deleting plaintext for everything but characters and speakers
-# change variables of scene['properties']['lengthLines'] and such to changing variables within the dictionary
 form = {
     'act': r'Act \d+:\n',
     'scene': r'Scene \d+:\n',
@@ -55,14 +51,11 @@ def textParse(text, form):
         scenes = re.split(form['scene'], act)[1:]
 
         act = {
-            # 'actNum': text['lengthActs']
             'lengthScenes': 0,
             'lengthSpeeches': 0,
             'lengthLines': 0,
             'lengthWords': 0,
             'lengthChars': 0
-            # 'startLineTotal': text['lengthLines'],
-            # 'startSpeechTotal': text['lengthSpeeches']
         }
 
         for scene in scenes:
@@ -77,14 +70,12 @@ def textParse(text, form):
                 'lengthLines': 0,
                 'lengthWords': 0,
                 'lengthChars': 0
-                # 'startLineTotal': text['properties']['lengthLines']
             }
 
             for speech in speeches:
                 scene['lengthSpeeches'] += 1
 
                 speakerAndLines = speech.split('|lines|')
-                # print speakerAndLines
                 lines = speakerAndLines[1].split('\n') #[:-1]
 
                 speech = {
@@ -159,6 +150,4 @@ def textParse(text, form):
 plaintext = openData('text')
 text = textParse(plaintext, form)
 
-# speakers mix with other words at the end
-# some parsing problems
 print text['speakers'].keys()
