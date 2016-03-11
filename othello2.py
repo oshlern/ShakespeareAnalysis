@@ -1,6 +1,8 @@
 # fix line spacing with tabs
 # get rid of plaintext
 #make a parser to separate the stage instructions from stats
+# char count w/ speakers?
+# fix general char count (not chars)
 
 import re
 form = {
@@ -28,7 +30,8 @@ def addDicts(original, addition, remove):
             if key in keys:
                 if isinstance(original[key], dict) and isinstance(addition[key], dict):
                     original[key] += addition[key]
-                elif isinstance(original[key], int) and isinstance(addition[key], int): #or array
+                # elif isinstance(original[key], int) and isinstance(addition[key], int): #or array
+                else:
                     original[key] = addDicts(original[key], addition[key])
             else:
                 original[key] = addition[key]
@@ -47,7 +50,6 @@ def speakerInfo(speaker):
         for sceneNum in speaker[actNum].keys():
             scene = {'lengthSpeeches': 0}
             for speechNum in speaker[actNum][sceneNum]:
-                # print text[actNum][sceneNum][speechNum]
                 scene = addDicts(scene, text[actNum][sceneNum][speechNum])
                 scene['lengthSpeeches'] += 1
             act = addDicts(act,scene)
@@ -60,63 +62,38 @@ def speakerInfo(speaker):
 
 def textParse(text, form):
     plaintext = text
-    speakers = {}
-    text = {
+    # speakers = {}
+    # text = {
         # 'lengthSpeakers': 0, # ADD EVERYWHERE
-        'lengthActs': 0,
+        # 'lengthActs': 0,
         # 'lengthScenes': 0,
         # 'lengthSpeeches': 0,
         # 'lengthLines': 0,
         # 'lengthWords': 0,
         # 'lengthChars': 0
-    }
+    # }
 
     acts = re.split(form['act'], plaintext)[1:]
-
+    text = {'lengthActs': 0}
     for act in acts:
         text['lengthActs'] += 1
-
         scenes = re.split(form['scene'], act)[1:]
-
-        act = {
-            'lengthScenes': 0,
-            # 'lengthSpeeches': 0,
-            # 'lengthLines': 0,
-            # 'lengthWords': 0,
-            # 'lengthChars': 0
-        }
-
+        act = {'lengthScenes': 0}
         for scene in scenes:
             act['lengthScenes'] += 1
             speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', '\n' + scene)
             speeches = speakerForm.split('|speaker|')[1:]
-
-            scene = {
-                'lengthSpeakers': 0,
-                'lengthSpeeches': 0,
-                # 'lengthLines': 0,
-                # 'lengthWords': 0,
-                # 'lengthChars': 0
-            }
+            scene = {'lengthSpeakers': 0, 'lengthSpeeches': 0}
 
             for speech in speeches:
                 scene['lengthSpeeches'] += 1
-
                 speakerAndLines = speech.split('|lines|')
+                speech['speaker'] = speakerAndLines[0]
                 lines = speakerAndLines[1].split('\n') #[:-1]
-
-                speech = {
-                    'speaker': speakerAndLines[0],
-                    'words': {},
-                    'chars': {},
-                    'lengthLines': 0,
-                    'lengthWords': 0,
-                    'lengthChars': 0
-                }
+                speech = {'speaker': '', 'words': {}, 'chars': {}, 'lengthLines': 0}
 
                 for line in lines:
                     speech['lengthLines'] += 1
-
                     words = re.sub('[^a-zA-z-\' ]', '', line)
                     words = words.lower()
                     words = words.split(' ')
@@ -124,13 +101,21 @@ def textParse(text, form):
 
                     if not speech['speaker'] in speakers.keys(): #fix to be speakers in speech
                         scene['lengthSpeakers'] += 1
-                        speakers[speech['speaker']] = {text['lengthActs']: {act['lengthScenes']: [scene['lengthSpeeches']]}}
-                    elif not text['lengthActs'] in speakers[speech['speaker']].keys():
-                        speakers[speech['speaker']][text['lengthActs']] = {act['lengthScenes']: [scene['lengthSpeeches']]}
-                    elif not act['lengthScenes'] in speakers[speech['speaker']][text['lengthActs']].keys():
-                        speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] = [scene['lengthSpeeches']]
-                    else:
-                        speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] += [scene['lengthSpeeches']]
+                        speakers[speech['speaker']] = {}
+                    if not text['lengthActs'] in speakers[speech['speaker']][speech['speaker']].keys():
+                        speakers[speech['speaker']][text['lengthActs']] = {}
+                    if not act['lengthScenes'] in speakers[speech['speaker']][text['lengthActs']].keys():
+                        speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] = []
+                    speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] += [scene['lengthSpeeches']]
+                    # if not speech['speaker'] in speakers.keys(): #fix to be speakers in speech
+                    #     scene['lengthSpeakers'] += 1
+                    #     speakers[speech['speaker']] = {text['lengthActs']: {act['lengthScenes']: [scene['lengthSpeeches']]}}
+                    # elif not text['lengthActs'] in speakers[speech['speaker']].keys():
+                    #     speakers[speech['speaker']][text['lengthActs']] = {act['lengthScenes']: [scene['lengthSpeeches']]}
+                    # elif not act['lengthScenes'] in speakers[speech['speaker']][text['lengthActs']].keys():
+                    #     speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] = [scene['lengthSpeeches']]
+                    # else:
+                    #     speakers[speech['speaker']][text['lengthActs']][act['lengthScenes']] += [scene['lengthSpeeches']]
 
                     line = {
                         'lineNum': scene['lengthLines'],
@@ -179,4 +164,7 @@ def textParse(text, form):
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
-print speakerInfo(text['speakers']['iago'])[1]
+# print speakerInfo(text['speakers']['iago'])[1]
+
+
+# for i in len(format), split and parse text in the existing for loops !!!!
