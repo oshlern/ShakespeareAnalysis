@@ -23,9 +23,9 @@ def addDicts(original, addition):
     keys = original.keys();
     for key in addition.keys():
         if key in keys:
-            if isinstance(original[key], int):
+            if isinstance(original[key], int) and isinstance(addition[key], int):
                 original[key] += addition[key]
-            elif isinstance(original[key], dict):
+            elif isinstance(original[key], dict) and isinstance(addition[key], dict):
                 original[key] = addDicts(original[key], addition[key])
         else:
             original[key] = addition[key]
@@ -37,45 +37,22 @@ def addToDict(original, addition):
     else:
             original[addition] = 1
 
-def speakerInfo(speaker, layer):
-    properties = {
-        'words': {},
-        'chars': {},
-        'lengthActs': 0,
-        'lengthScenes': 0,
-        'lengthSpeeches': 0,
-        'lengthLines': 0,
-        'lengthWords': 0,
-        'lengthChars': 0
-    }
-    # words = {}
-    # chars = {}
-    # lengthActs = 0
-    # lengthScenes = 0
-    # lengthSpeeches = 0
-    # lengthLines = 0
-    # lengthWords = 0
-    # lengthChars = 0
-    for actNum in speakers[speaker].keys():
-        properties['lengthActs'] += 1
-        act = {'words': {}, 'chars': {}, 'lengthScenes': 0, 'lengthSpeeches': 0, 'lengthLines': 0, 'lengthWords': 0, 'lengthChars': 0}
-
-        for sceneNum in speakers[speaker][actNum].keys():
-            act['lengthScenes'] += 1
-            scene = {'words': {}, 'chars': {}, 'lengthSpeeches': 0, 'lengthLines': 0, 'lengthWords': 0, 'lengthChars': 0}
-
-            for speechNum in speakers[speaker][actNum][sceneNum].keys():
+def speakerInfo(speaker):
+    properties = {'lengthActs': 0}
+    for actNum in speaker.keys():
+        act = {'lengthScenes': 0}
+        for sceneNum in speaker[actNum].keys():
+            scene = {'lengthSpeeches': 0}
+            for speechNum in speaker[actNum][sceneNum]:
+                # print text[actNum][sceneNum][speechNum]
+                scene = addDicts(scene, text[actNum][sceneNum][speechNum])
                 scene['lengthSpeeches'] += 1
-
-                speech = text[actNum][sceneNum][speechNum]
-                scene['lengthLines'] += speech['lengthLines']
-                scene['lengthWords'] += speech['lengthWords']
-                scene['lengthChars'] += speech['lengthChars']
-                addDicts(scene['words'], speech['words'])
-                addDicts(scene['chars'], speech['chars'])
-
-            act[sceneNum] = scene
-        properties[actNum] = act
+            act = addDicts(act,scene)
+            act['lengthScenes'] += 1
+        properties = addDicts(properties, act)
+        properties['lengthActs'] += 1
+    speaker = addDicts(speaker, properties)
+    return speaker
 
 
 def textParse(text, form):
@@ -146,7 +123,6 @@ def textParse(text, form):
                         'lengthWords': 0,
                         'lengthChars': len(line)
                     }
-                    print words
                     for word in words:
                         line['lengthWords'] += 1
                         if word in speech['words']:
@@ -196,5 +172,4 @@ def textParse(text, form):
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
-
-print text[3][2][1]
+print speakerInfo(text['speakers']['iago'])[1]
