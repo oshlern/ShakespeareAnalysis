@@ -34,3 +34,14 @@ print isinstance({'hi': 0, 'a': 1}, dict)
 for i in range(4):
     a += [[]]
     print len(a)
+
+
+print '\n\n\n'
+if 'hi' in {'12': 23, 'hisa': 'hi'}:
+    print 'hi'
+
+# in == in .keys()
+
+# print 'hilo' if True
+
+x = {'hs': 23, if True: 'a': 12}
