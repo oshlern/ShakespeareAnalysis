@@ -29,6 +29,7 @@ c = {
     'donuts': 23
 }
 
+print isinstance({'hi': 0, 'a': 1}, dict)
 
 for i in range(4):
     a += [[]]

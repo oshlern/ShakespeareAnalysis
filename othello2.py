@@ -1,5 +1,7 @@
 # fix line spacing with tabs
 # get rid of plaintext
+#make a parser to separate the stage instructions from stats
+
 import re
 form = {
     'act': r'Act \d+:\n',
@@ -12,13 +14,19 @@ def openData(doc):
     text = open(doc, 'r')
     text = text.read()
     return text
+def saveData(doc, data):
+    output = open(doc,"w")
+    output.write(data)
 
 # trade off between code organization+readability and efficiency (function calls)
 def addDicts(original, addition):
     keys = original.keys();
     for key in addition.keys():
         if key in keys:
-            original[key] += addition[key]
+            if isinstance(original[key], int):
+                original[key] += addition[key]
+            elif isinstance(original[key], dict):
+                original[key] = addDicts(original[key], addition[key])
         else:
             original[key] = addition[key]
     return original
@@ -29,12 +37,52 @@ def addToDict(original, addition):
     else:
             original[addition] = 1
 
+def speakerInfo(speaker, layer):
+    properties = {
+        'words': {},
+        'chars': {},
+        'lengthActs': 0,
+        'lengthScenes': 0,
+        'lengthSpeeches': 0,
+        'lengthLines': 0,
+        'lengthWords': 0,
+        'lengthChars': 0
+    }
+    # words = {}
+    # chars = {}
+    # lengthActs = 0
+    # lengthScenes = 0
+    # lengthSpeeches = 0
+    # lengthLines = 0
+    # lengthWords = 0
+    # lengthChars = 0
+    for actNum in speakers[speaker].keys():
+        properties['lengthActs'] += 1
+        act = {'words': {}, 'chars': {}, 'lengthScenes': 0, 'lengthSpeeches': 0, 'lengthLines': 0, 'lengthWords': 0, 'lengthChars': 0}
+
+        for sceneNum in speakers[speaker][actNum].keys():
+            act['lengthScenes'] += 1
+            scene = {'words': {}, 'chars': {}, 'lengthSpeeches': 0, 'lengthLines': 0, 'lengthWords': 0, 'lengthChars': 0}
+
+            for speechNum in speakers[speaker][actNum][sceneNum].keys():
+                scene['lengthSpeeches'] += 1
+
+                speech = text[actNum][sceneNum][speechNum]
+                scene['lengthLines'] += speech['lengthLines']
+                scene['lengthWords'] += speech['lengthWords']
+                scene['lengthChars'] += speech['lengthChars']
+                addDicts(scene['words'], speech['words'])
+                addDicts(scene['chars'], speech['chars'])
+
+            act[sceneNum] = scene
+        properties[actNum] = act
+
+
 def textParse(text, form):
     plaintext = text
     speakers = {}
-    #make a parser to separate the stage instructions from stats
     text = {
-        'lengthSpeakers': 0,
+        'lengthSpeakers': 0, # ADD EVERYWHERE
         'lengthActs': 0,
         'lengthScenes': 0,
         'lengthSpeeches': 0,
@@ -60,8 +108,6 @@ def textParse(text, form):
 
         for scene in scenes:
             act['lengthScenes'] += 1
-            if text['lengthActs']==1 and act['lengthScenes']==3:
-                print scene
             speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', '\n' + scene)
             speeches = speakerForm.split('|speaker|')[1:]
 
@@ -90,7 +136,8 @@ def textParse(text, form):
                 for line in lines:
                     speech['lengthLines'] += 1
 
-                    words = re.sub('[^[a-zA-z-\']]', '', line).lower()
+                    words = re.sub('[^a-zA-z-\' ]', '', line)
+                    words = words.lower()
                     words = words.split(' ')
                     chars = re.sub('[a-zA-z]', '', line)
 
@@ -99,7 +146,7 @@ def textParse(text, form):
                         'lengthWords': 0,
                         'lengthChars': len(line)
                     }
-
+                    print words
                     for word in words:
                         line['lengthWords'] += 1
                         if word in speech['words']:
@@ -150,4 +197,4 @@ def textParse(text, form):
 plaintext = openData('text')
 text = textParse(plaintext, form)
 
-print text['speakers'].keys()
+print text[3][2][1]

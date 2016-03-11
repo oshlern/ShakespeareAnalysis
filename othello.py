@@ -17,6 +17,9 @@ def openData(doc):
     text = open(doc, 'r')
     text = text.read()
     return text
+def saveData(doc, data):
+    output = open(doc,"w")
+    output.write(data)
 
 def textParse(text, form):
     text = {'plaintext': text}
