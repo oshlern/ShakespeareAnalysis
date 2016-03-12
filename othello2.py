@@ -1,3 +1,6 @@
+# make prints
+# fix stage instructions
+
 # fix line spacing with tabs
 # make a parser to separate the stage instructions from stats
 # char count w/ speakers?
