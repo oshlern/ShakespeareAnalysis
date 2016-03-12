@@ -1,19 +1,20 @@
-def addDicts(original, addition): #, remove):
-    if 'subsets' in addition:
-        addition.pop('subsets', None)
-    for key in addition:
-        if key in original:
-            if isinstance(original[key], dict) and isinstance(addition[key], dict):
-                original[key] = addDicts(original[key], addition[key])
-            # elif isinstance(original[key], int) and isinstance(addition[key], int): #or array
-            else:
-                original[key] += addition[key]
-        else:
-            original[key] = addition[key]
-    return original
-
-addDicts({'ad': 23, 'subsets': [1,2,3], 'hi': 213})
-# import re
+import re
+print re.sub(r'speaker (.*)', r'|speaker|\1|lines|', 'asdsdaspeaker sfjskn')
+# def addDicts(original, addition): #, remove):
+#     if 'subsets' in addition:
+#         addition.pop('subsets', None)
+#     for key in addition:
+#         if key in original:
+#             if isinstance(original[key], dict) and isinstance(addition[key], dict):
+#                 original[key] = addDicts(original[key], addition[key])
+#             # elif isinstance(original[key], int) and isinstance(addition[key], int): #or array
+#             else:
+#                 original[key] += addition[key]
+#         else:
+#             original[key] = addition[key]
+#     return original
+#
+# addDicts({'ad': 23, 'subsets': [1,2,3], 'hi': 213})
 # a = "[[1,2,3,4,5,6,7], [1,2,3]]"
 # # fib = re.sub(r'\], \[', '|', a)
 # # fib = re.sub(r'\]|\[', '', fib)

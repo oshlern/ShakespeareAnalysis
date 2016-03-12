@@ -64,6 +64,21 @@ def speakerInfo(speaker):
     speaker = addDicts(speaker, properties, 'NULL')
     return speaker
 
+def plain(plaintext, section):
+    # section = [1,2,4]
+    newText = 'Act ' + str(section[0]) + ':\n'
+    plaintext = re.split(form['act'], plaintext)[section[0]]
+    if len(section) > 1:
+        newText += 'Scene ' + str(section[1]) + ':\n'
+        plaintext = re.split(form['scene'], plaintext)[section[1]]
+        if len(section) > 2:
+            plaintext = re.sub(form['speaker'], r'|speaker|\1|lines|:', '\n' + plaintext)
+            plaintext = speakerForm.split('|speaker|')[section[2]].split('|lines|')
+            newText += plaintext[0] + ':\n'
+            plaintext = plaintext[1]
+
+    newText += plaintext
+
 def textParse(text, form):
     plaintext = text
     acts = re.split(form['act'], plaintext)[1:]
