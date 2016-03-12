@@ -25,14 +25,14 @@ def saveData(doc, data):
 
 # trade off between code organization+readability and efficiency (function calls)
 # add remove a possible remove
-def addDicts(original, addition): #, remove):
+def addDicts(original, addition, remove):
     if 'subsets' in original:
         original['subsets'] += [addition]
     for key in addition:
-        if key != 'subsets':
+        if key != 'subsets' and key != remove:
             if key in original:
                 if isinstance(original[key], dict) and isinstance(addition[key], dict):
-                    original[key] = addDicts(original[key], addition[key])
+                    original[key] = addDicts(original[key], addition[key], 'NULL')
                 # elif isinstance(original[key], int) and isinstance(addition[key], int): #or array
                 else:
                     original[key] += addition[key]
@@ -53,13 +53,13 @@ def speakerInfo(speaker):
         for sceneNum in speaker[actNum].keys():
             scene = {'lengthSpeeches': 0}
             for speechNum in speaker[actNum][sceneNum]:
-                scene = addDicts(scene, text[actNum][sceneNum][speechNum])
+                scene = addDicts(scene, text[actNum][sceneNum][speechNum], 'NULL')
                 scene['lengthSpeeches'] += 1
-            act = addDicts(act,scene)
+            act = addDicts(act,scene, 'NULL')
             act['lengthScenes'] += 1
-        properties = addDicts(properties, act)
+        properties = addDicts(properties, act, 'NULL')
         properties['lengthActs'] += 1
-    speaker = addDicts(speaker, properties)
+    speaker = addDicts(speaker, properties, 'NULL')
     return speaker
 
 def textParse(text, form):
@@ -117,18 +117,18 @@ def textParse(text, form):
                                 speech['chars'][char] = 0
                             speech['chars'][char] += 1
                     # speech['subsets'] += [line]
-                    line.pop('lineNum', None)
-                    speech = addDicts(speech, line)
+                    # line.pop('lineNum', None)
+                    speech = addDicts(speech, line, 'lineNum')
                 # scene['subsets'][scene['lengthSpeeches']] = speech
                 # scene['subsets'] += [speech]
-                speech.pop('speaker', None)
-                scene = addDicts(scene, speech)
+                # speech.pop('speaker', None)
+                scene = addDicts(scene, speech, 'speaker')
             # act['subsets'] += [scene]
-            act = addDicts(act, scene) #remove scene subsets (maybe make a scene['speeches']?) use addDicts Remove or another remove function
+            act = addDicts(act, scene, 'NULL') #remove scene subsets (maybe make a scene['speeches']?) use addDicts Remove or another remove function
         # print act.keys()
         # print '\n'
         # text['subsets'] += [act]
-        text = addDicts(text, act)
+        text = addDicts(text, act, 'NULL')
     return text
     # generalize the format and include different ones so that you can make a recursive function for the for loops
 
