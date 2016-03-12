@@ -61,8 +61,10 @@ def speakerInfo(speaker):
     speaker = addDicts(speaker, properties)
     return speaker
 
+
 def textParse(text, form):
     plaintext = text
+
     acts = re.split(form['act'], plaintext)[1:]
     text = {'lengthActs': 0, 'subsets': []}
     for act in acts:
@@ -113,9 +115,9 @@ def textParse(text, form):
                         'lengthChars': len(line)
                     }
 
-                    for word in words:
-                        line['lengthWords'] += 1
-                        if doWords:
+                    if doWords:
+                        for word in words:
+                            line['lengthWords'] += 1
                             if not word in speech['words']:
                                 speech['words'][word] = 0
                             speech['words'][word] += 1
@@ -124,7 +126,7 @@ def textParse(text, form):
                             if not char in speech['chars']:
                                 speech['chars'][char] = 0
                             speech['chars'][char] += 1
-                    speech['subsets'] += line
+                    speech[speech['lengthLines']] = line
                     line.pop('lineNum', None)
                     speech = addDicts(speech, line)
                 # scene['subsets'][scene['lengthSpeeches']] = speech
