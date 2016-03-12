@@ -131,9 +131,9 @@ def textParse(text, form):
                 scene['subsets'] += speech
                 speech.pop('speaker', None)
                 scene = addDicts(scene, speech)
-            # act['subsets'] += scene
+            act['subsets'] += scene
             act = addDicts(act, scene) #remove scene subsets (maybe make a scene['speeches']?) use addDicts Remove or another remove function
-        # text['subsets'] += act
+        text['subsets'] += act
         text = addDicts(text, act)
     return text
     # generalize the format and include different ones so that you can make a recursive function for the for loops
