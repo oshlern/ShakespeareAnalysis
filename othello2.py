@@ -1,9 +1,7 @@
 # fix line spacing with tabs
-# get rid of plaintext
-#make a parser to separate the stage instructions from stats
+# make a parser to separate the stage instructions from stats
 # char count w/ speakers?
 # fix general char count (not chars)
-# in == in .keys() Can replace .keys()
 import re
 form = {
     'act': r'Act \d+:\n',
@@ -13,6 +11,7 @@ form = {
 }
 doWords = False
 doChars = False
+doSpeakers = True
 
 
 def openData(doc):
@@ -24,7 +23,7 @@ def saveData(doc, data):
     output.write(data)
 
 # trade off between code organization+readability and efficiency (function calls)
-# add remove a possible remove
+# add a possible remove
 def addDicts(original, addition, remove):
     if 'subsets' in original:
         original['subsets'] += [addition]
@@ -74,7 +73,10 @@ def textParse(text, form):
             act['lengthScenes'] += 1
             speakerForm = re.sub(form['speaker'], r'|speaker|\1|lines|', '\n' + scene)
             speeches = speakerForm.split('|speaker|')[1:]
-            scene = {'speakers': {}, 'lengthSpeakers': 0, 'lengthSpeeches': 0, 'lengthLines': 0, 'subsets': []}
+            scene = {'lengthSpeeches': 0, 'lengthLines': 0, 'subsets': []}
+            if doSpeakers:
+                scene['speakers'] = {}
+                scene['lengthSpeakers'] = 0
             for speech in speeches:
                 scene['lengthSpeeches'] += 1
                 speakerAndLines = speech.split('|lines|')
@@ -84,14 +86,15 @@ def textParse(text, form):
                 speech['speaker'] = speakerAndLines[0]
                 lines = speakerAndLines[1].split('\n') #[:-1]
 
-                if not speech['speaker'] in scene['speakers']: #fix to be speakers in speech
-                    scene['lengthSpeakers'] += 1
-                    scene['speakers'][speech['speaker']] = {}
-                if not text['lengthActs'] in scene['speakers'][speech['speaker']]:
-                    scene['speakers'][speech['speaker']][text['lengthActs']] = {}
-                if not act['lengthScenes'] in scene['speakers'][speech['speaker']][text['lengthActs']]:
-                    scene['speakers'][speech['speaker']][text['lengthActs']][act['lengthScenes']] = []
-                scene['speakers'][speech['speaker']][text['lengthActs']][act['lengthScenes']] += [scene['lengthSpeeches']]
+                if doSpeakers:
+                    if not speech['speaker'] in scene['speakers']: #fix to be speakers in speech
+                        scene['lengthSpeakers'] += 1
+                        scene['speakers'][speech['speaker']] = {}
+                    if not text['lengthActs'] in scene['speakers'][speech['speaker']]:
+                        scene['speakers'][speech['speaker']][text['lengthActs']] = {}
+                    if not act['lengthScenes'] in scene['speakers'][speech['speaker']][text['lengthActs']]:
+                        scene['speakers'][speech['speaker']][text['lengthActs']][act['lengthScenes']] = []
+                    scene['speakers'][speech['speaker']][text['lengthActs']][act['lengthScenes']] += [scene['lengthSpeeches']]
 
                 for line in lines:
                     speech['lengthLines'] += 1
@@ -101,13 +104,11 @@ def textParse(text, form):
                     chars = re.sub('[a-zA-z]', '', line)
                     line = {
                         'lineNum': scene['lengthLines'] + speech['lengthLines'],
-                        'lengthWords': 0,
+                        'lengthWords': len(words),
                         'lengthChars': len(line)
                     }
-
-                    for word in words:
-                        line['lengthWords'] += 1
-                        if doWords:
+                    if doWords:
+                        for word in words:
                             if not word in speech['words']:
                                 speech['words'][word] = 0
                             speech['words'][word] += 1
@@ -116,18 +117,10 @@ def textParse(text, form):
                             if not char in speech['chars']:
                                 speech['chars'][char] = 0
                             speech['chars'][char] += 1
-                    # speech['subsets'] += [line]
-                    # line.pop('lineNum', None)
+
                     speech = addDicts(speech, line, 'lineNum')
-                # scene['subsets'][scene['lengthSpeeches']] = speech
-                # scene['subsets'] += [speech]
-                # speech.pop('speaker', None)
                 scene = addDicts(scene, speech, 'speaker')
-            # act['subsets'] += [scene]
-            act = addDicts(act, scene, 'NULL') #remove scene subsets (maybe make a scene['speeches']?) use addDicts Remove or another remove function
-        # print act.keys()
-        # print '\n'
-        # text['subsets'] += [act]
+            act = addDicts(act, scene, 'NULL')
         text = addDicts(text, act, 'NULL')
     return text
     # generalize the format and include different ones so that you can make a recursive function for the for loops
@@ -137,7 +130,7 @@ plaintext = openData('text')
 text = textParse(plaintext, form)
 # print text.pop('subsets', None)
 # print text.pop('speakers', None)
-print text['subsets'][0]['subsets'][0]['subsets'][7]
+print len(text['speakers'])
 
 # number of times a speaker is mentioned by name
 # number of distinct words used by characters (vocabulary) (per number of total words)
