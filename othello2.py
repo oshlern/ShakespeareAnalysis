@@ -12,9 +12,9 @@ form = {
     'speaker': r'\n(\w+):\n',
     'line': r'([^\n]+)\n'
 }
-doWords = False
+doWords = True
 doChars = False
-doSpeakers = True
+doSpeakers = False
 
 
 def openData(doc):
@@ -116,25 +116,25 @@ def textParse(text, form):
 
                 for line in lines:
                     speech['lengthLines'] += 1
-                    words = re.sub('[^a-zA-z-\' ]', '', line)
+                    words = re.sub('[^a-zA-z-\' ]|\[|\]|--', '', line)
                     words = words.lower()
                     words = words.split(' ')
-                    chars = re.sub('[a-zA-z]', '', line)
-                    line = {
-                        'lineNum': scene['lengthLines'] + speech['lengthLines'],
-                        'lengthWords': len(words),
-                        'lengthChars': len(line)
-                    }
                     if doWords:
                         for word in words:
                             if not word in speech['words']:
                                 speech['words'][word] = 0
                             speech['words'][word] += 1
                     if doChars:
+                        chars = re.sub('[a-zA-z]', '', line)
                         for char in chars:
                             if not char in speech['chars']:
                                 speech['chars'][char] = 0
                             speech['chars'][char] += 1
+                    line = {
+                        'lineNum': scene['lengthLines'] + speech['lengthLines'],
+                        'lengthWords': len(words),
+                        'lengthChars': len(line)
+                    }
 
                     speech = addDicts(speech, line, 'lineNum')
                 scene = addDicts(scene, speech, 'speaker')
@@ -150,7 +150,7 @@ text = textParse(plaintext, form)
 # print text.pop('speakers', None)
 # print len(text['speakers'])
 # print plain(plaintext, [1,1,3])
-print text
+print text['words']
 # number of times a speaker is mentioned by name
 # number of distinct words used by characters (vocabulary) (per number of total words)
 # for i in len(format), split and parse text in the existing for loops !!!!

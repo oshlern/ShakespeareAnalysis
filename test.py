@@ -1,5 +1,7 @@
 import re
-print re.sub(r'speaker (.*)', r'|speaker|\1|lines|', 'asdsdaspeaker sfjskn')
+
+print re.sub('[^a-zA-z-\' ]|\[|\]', '', '[Falls on the bed, and dies]')
+# print re.sub(r'speaker (.*)', r'|speaker|\1|lines|', 'asdsdaspeaker sfjskn')
 # def addDicts(original, addition): #, remove):
 #     if 'subsets' in addition:
 #         addition.pop('subsets', None)
