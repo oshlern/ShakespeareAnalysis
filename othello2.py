@@ -72,12 +72,12 @@ def plain(plaintext, section):
         newText += 'Scene ' + str(section[1]) + ':\n'
         plaintext = re.split(form['scene'], plaintext)[section[1]]
         if len(section) > 2:
-            plaintext = re.sub(form['speaker'], r'|speaker|\1|lines|:', '\n' + plaintext)
-            plaintext = speakerForm.split('|speaker|')[section[2]].split('|lines|')
+            plaintext = re.sub(form['speaker'], r'|speaker|\1|lines|', '\n' + plaintext)
+            plaintext = plaintext.split('|speaker|')[section[2]].split('|lines|')
             newText += plaintext[0] + ':\n'
             plaintext = plaintext[1]
-
     newText += plaintext
+    return newText
 
 def textParse(text, form):
     plaintext = text
@@ -148,8 +148,9 @@ plaintext = openData('text')
 text = textParse(plaintext, form)
 # print text.pop('subsets', None)
 # print text.pop('speakers', None)
-print len(text['speakers'])
-
+# print len(text['speakers'])
+# print plain(plaintext, [1,1,3])
+print text
 # number of times a speaker is mentioned by name
 # number of distinct words used by characters (vocabulary) (per number of total words)
 # for i in len(format), split and parse text in the existing for loops !!!!
