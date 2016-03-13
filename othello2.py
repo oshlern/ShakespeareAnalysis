@@ -14,7 +14,7 @@ form = {
 }
 doWords = True
 doChars = False
-doSpeakers = False
+doSpeakers = True
 
 
 def openData(doc):
@@ -150,7 +150,7 @@ text = textParse(plaintext, form)
 # print text.pop('speakers', None)
 # print len(text['speakers'])
 # print plain(plaintext, [1,1,3])
-print text['words']
+print text['speakers'].keys()
 # number of times a speaker is mentioned by name
 # number of distinct words used by characters (vocabulary) (per number of total words)
 # for i in len(format), split and parse text in the existing for loops !!!!
