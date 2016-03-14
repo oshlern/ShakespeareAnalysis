@@ -5,7 +5,7 @@
 # make a parser to separate the stage instructions from stats
 # char count w/ speakers?
 # fix general char count (not chars)
-import re
+import re, operator
 form = {
     'act': r'Act \d+:\n',
     'scene': r'Scene \d+:\n',
@@ -55,7 +55,7 @@ def speakerInfo(speaker):
         for sceneNum in speaker[actNum].keys():
             scene = {'lengthSpeeches': 0}
             for speechNum in speaker[actNum][sceneNum]:
-                scene = addDicts(scene, text[actNum][sceneNum][speechNum], 'NULL')
+                scene = addDicts(scene, text['subsets'][actNum-1]['subsets'][sceneNum-1]['subsets'][speechNum-1], 'NULL')
                 scene['lengthSpeeches'] += 1
             act = addDicts(act,scene, 'NULL')
             act['lengthScenes'] += 1
@@ -146,11 +146,19 @@ def textParse(text, form):
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
-# print text.pop('subsets', None)
-# print text.pop('speakers', None)
-# print len(text['speakers'])
-# print plain(plaintext, [1,1,3])
-print text['speakers'].keys()
+words = speakerInfo(text['speakers']['iago'])['words']
+words = text['words']
+largest = [0, '']
+
+print sorted(words.items(), key=operator.itemgetter(1))
+# https://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
+
+# for word in words:
+#     if words[word]>largest[0]:
+#         largest = [words[word], word]
+# print largest
+# print plain(plaintext, [5,2])
+# print text['subsets'][4]['subsets'][1]
 # number of times a speaker is mentioned by name
 # number of distinct words used by characters (vocabulary) (per number of total words)
 # for i in len(format), split and parse text in the existing for loops !!!!
