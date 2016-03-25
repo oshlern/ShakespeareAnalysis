@@ -13,8 +13,9 @@ form = {
     'line': r'([^\n]+)\n'
 }
 doWords = True
-doChars = False
+doChars = True
 doSpeakers = True
+# add a doCount
 
 
 def openData(doc):
@@ -135,7 +136,6 @@ def textParse(text, form):
                         'lengthWords': len(words),
                         'lengthChars': len(line)
                     }
-
                     speech = addDicts(speech, line, 'lineNum')
                 scene = addDicts(scene, speech, 'speaker')
             act = addDicts(act, scene, 'NULL')
@@ -146,16 +146,19 @@ def textParse(text, form):
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
-words = speakerInfo(text['speakers']['iago'])['words']
-words = text['words']
+words = speakerInfo(text['speakers']['iago'])['chars']
+# words = text['speakers']['iago']['words']
 largest = [0, '']
 
-print sorted(words.items(), key=operator.itemgetter(1))
+# print sorted(words.items(), key=operator.itemgetter(1))
 # https://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
 
-# for word in words:
-#     if words[word]>largest[0]:
-#         largest = [words[word], word]
+# print text['speakers']['iago']['lengthSpeeches']
+#
+# for speaker in text['speakers']:
+#     lines = speakerInfo(text['speakers'][speaker])['lengthLines']
+#     if lines > largest[0]:
+#         largest = [lines, speaker]
 # print largest
 # print plain(plaintext, [5,2])
 # print text['subsets'][4]['subsets'][1]

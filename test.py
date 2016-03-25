@@ -1,6 +1,26 @@
 import re
+print 1 == 1.0
+# f = open('text', 'rb')
+# found = False
+# while True:
+#     a = f.read(1)
+#     if a == 'a':
+#         found = True
+#     elif found:
+#         found = False
+#     if found and a == 's':
+#         print 'YAYAYAYAY\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
+#         break
 
-print re.sub('[^a-zA-z-\' ]|\[|\]', '', '[Falls on the bed, and dies]')
+# r = range(10)
+# print r
+# def lazy():
+#     print 'hi'
+#     return 1
+# r = lazy()
+# print 'a'
+# print r
+# print re.sub('[^a-zA-z-\' ]|\[|\]', '', '[Falls on the bed, and dies]')
 # print re.sub(r'speaker (.*)', r'|speaker|\1|lines|', 'asdsdaspeaker sfjskn')
 # def addDicts(original, addition): #, remove):
 #     if 'subsets' in addition:
