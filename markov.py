@@ -63,23 +63,27 @@ def openData(doc):
 
 # Make lastWord and lastWordNum speaker specific
 def textParse(text, form):
-    speakers = {'null': {}}
+    speakers = {'null': {}, 'last': 'null'}
     speeches = {}
     lines = {}
-    text = re.sub(form['act']|form['scene']|form['stage'], '', text)
+    text = re.sub(form['act'] or form['scene'] or form['stage'], '', text)
     text = re.sub(form['speaker'], r'|speaker|\1|lines|', text)
-    speeches = speakerForm.split('|speaker|')[1:]
-    for speech in speeches
+    speechesText = text.split('|speaker|')[1:]
+    for speech in speechesText:
         speakerAndLines = speech.split('|lines|')
         speaker = speakerAndLines[0]
-        words = speakerAndLines[1].split('\n')[:-1]
-        for superset in [speakers, speeches, lines]
+        print speaker
+        linesText = speakerAndLines[1].split('\n')[:-1]
+        for superset in [speeches, lines]:
             if not speaker in superset:
                 superset[speaker] = {'last': 'null'}
+        if not speaker in speakers:
+            superset[speaker] = {}
+        # print speakers['last']
         if not speaker in speakers[speakers['last']]:
             speakers[speakers['last']][speaker] = 0
         speakers[speakers['last']][speaker] += 1
-        for line in lines:
+        for line in linesText:
             # words = re.sub('[^a-zA-z-\' ]|\[|\]|--', '', line)
             words = re.sub('([^\'])\b([^\'])', r'\1|break|\2', line)
             words = re.sub(' ', '', words)
