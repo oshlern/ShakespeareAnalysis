@@ -150,7 +150,7 @@ words = speakerInfo(text['speakers']['iago'])['chars']
 # words = text['speakers']['iago']['words']
 largest = [0, '']
 
-print text['speakers'].keys()
+print text
 # print sorted(words.items(), key=operator.itemgetter(1))
 # https://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
 

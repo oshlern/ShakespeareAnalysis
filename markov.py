@@ -18,9 +18,10 @@ def pickItem(lastItem):
     total = findTotal(lastItem.items())
     rand = random.random()*total
     for item in lastItem:
-        if rand<lastItem[item]:
-            return item
-        rand -= lastItem[item]
+        if type(lastItem[item]) == int or type(lastItem[item]) == float:
+            if rand<lastItem[item]:
+                return item
+            rand -= lastItem[item]
 def printSpeaker(speaker):
     return speaker + ':\n'
 def printWord(word):
@@ -29,17 +30,29 @@ def printWord(word):
     return ' ' + word
 def printLine():
     return '\n'
-def makeLine(words, lineLength):
-    word = '~null'
+def makeLine(words, lineLength, lastWord):
+    text = ''
+    word = lastWord
+    for i in xrange(lineLength):
+        word = pickItem(words[word])
+        text += printWord(word)
+    return (text, word)
 def makeSpeech(words, lineLengths, speechLength):
+    text = ''
     word = '~null'
-    wordNum = pickItem
+    lineLength = '~null'
+    # for i in xrange(speechLength):
+    #     lineLength = pickItem(lineLengths[lineLength])
+    #     line, word = makeLine(words, lineLength, wordprintWord(lineLength)
+    # return text
 def makeDialogue(words, lineLengths, speechLengths, speakers):
     text = ''
+    speechLength = 0
     speaker = pickItem(speakers['~null'])
     for speech in range(100):
         text += printSpeaker(speaker)
         speaker = speakers[speaker]
+        text += makeSpeech(words[speaker], lineLengths[speaker], speechLength)
 
 
 # Treat punctuation and new lines as a word
@@ -87,7 +100,7 @@ def textParse(text, form):
         speakerAndLines = speech.split('|lines|')
         speaker = speakerAndLines[0]
         lines = speakerAndLines[1].split('\n')[:-1]
-        for superset in [words, lineLengths]:
+        for superset in [words, lineLengths, speechLengths]:
             if not speaker in superset:
                 superset[speaker] = {'~null': {}, '~last': '~null'}
         if not speaker in speakers:
@@ -95,6 +108,7 @@ def textParse(text, form):
         if not speaker in speakers[speakers['~last']]:
             speakers[speakers['~last']][speaker] = 0
         speakers[speakers['~last']][speaker] += 1
+        lineNum = 0
         for line in lines:
             # chars = re.sub(r'([a-zA-z-\'])([^a-zA-z-\'])', r'\1', line)
             chars = re.sub(r'([^\'])\b([^\'])', r'\1|break|\2', line)
@@ -116,9 +130,17 @@ def textParse(text, form):
                 lineLengths[speaker][lineLengths[speaker]['~last']][wordNum] = 0
             lineLengths[speaker][lineLengths[speaker]['~last']][wordNum] += 1
             lineLengths[speaker]['~last'] = wordNum
+            lineNum += 1
+        if not lineNum in speechLengths[speaker]:
+            speechLengths[speaker][lineNum] = {}
+        if not lineNum in speechLengths[speaker][speechLengths[speaker]['~last']]:
+            speechLengths[speaker][speechLengths[speaker]['~last']][lineNum] = 0
+        speechLengths[speaker][speechLengths[speaker]['~last']][lineNum] += 1
+        speechLengths[speaker]['~last'] = lineNum
         speakers['~last'] = speaker
-    return {'speakers': speakers, 'words': words, 'lines': lineLengths}
+    return {'speakers': speakers, 'words': words, 'lineLengths': lineLengths, 'speechLengths': speechLengths}
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
 # print text['words']['iago']['is']
+print text['speechLengths']['iago']

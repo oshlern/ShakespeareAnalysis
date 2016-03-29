@@ -1,5 +1,8 @@
 import re
-print 1 == 1.0
+x, y = (1, 3)
+print x
+print y
+# print 1 == 1.0
 # f = open('text', 'rb')
 # found = False
 # while True:
