@@ -104,6 +104,8 @@ def printWord(word):
 def printLine(line):
     return line + '\n'
 
+# Add acts and scenes
+
 # correct for special character in the first spot (redo or next)
 def firstWord(words, lastWord):
     word = pickItem(words, lastWord)
@@ -124,15 +126,15 @@ def makeLine(words, lineLength, lastWord):
         text += printWord(word)
     return (text, word)
 
-def makeSpeech(words, lineLengths, speechLength):
+def makeSpeech(words, lineLengths, speechLength, lastWord):
     text = ''
     lineLength = '~null'
-    word = '~null'
+    word = lastWord
     for i in xrange(speechLength):
         lineLength = pickItem(lineLengths, lineLength)
         line, word = makeLine(words, lineLength, word)
         text += printLine(line)
-    return text
+    return text, word
 
 # Keep last word and lineLength of speaker stored
 # reset last speechLength of each speaker to 0 (every speech check if it's their first in this dialogue)
@@ -142,16 +144,11 @@ def makeDialogue(words, lineLengths, speechLengths, speakers, speechNum):
     for i in xrange(speechNum):
         speaker = pickItem(speakers, speaker)
         speechLength = pickItem(speechLengths[speaker], speechLengths[speaker]['~last'])
-        text += printSpeaker(speaker)
-        text += makeSpeech(words[speaker], lineLengths[speaker], speechLength)
-        speechLengths[speaker]['last'] = speechLength
+        speech, words[speaker]['~last'] = makeSpeech(words[speaker], lineLengths[speaker], speechLength, words[speaker]['~last'])
+        speechLengths[speaker]['~last'] = speechLength
+        text += printSpeaker(speaker) + speech
     return text
 
-# def fix(items):
-#     for item in items:
-#         if len(item) == 0:
-#             del item
-#         elif type(item) == dict:
 
 form = {
     'act': r'Act \d+:\n',
@@ -163,6 +160,6 @@ form = {
 plaintext = openData('text')
 speakers, words, lineLengths, speechLengths = textParse(plaintext, form)
 # print words['emilia']['world']
-print makeDialogue(words, lineLengths, speechLengths, speakers, 30)
+print makeDialogue(words, lineLengths, speechLengths, speakers, 300)
 # print text['words']['iago']['is']
 # print speechLengths
