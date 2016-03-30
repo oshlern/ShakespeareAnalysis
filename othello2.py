@@ -146,12 +146,12 @@ def textParse(text, form):
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
-words = speakerInfo(text['speakers']['iago'])['chars']
+words = speakerInfo(text['speakers']['roderigo'])['chars']
 # words = text['speakers']['iago']['words']
 largest = [0, '']
 
-print text
-# print sorted(words.items(), key=operator.itemgetter(1))
+# print text['speakers']['iago']['chars']
+print sorted(words.items(), key=operator.itemgetter(1))
 # https://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
 
 # print text['speakers']['iago']['lengthSpeeches']

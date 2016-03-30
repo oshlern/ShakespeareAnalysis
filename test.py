@@ -1,7 +1,19 @@
 import re
-x, y = (1, 3)
+def jk(x):
+    x = x + 1
+
+x = 1
 print x
-print y
+jk(x)
+print x
+
+# def hi():
+#     return (1, 2, 3)
+# x, y, z = hi()
+# print x
+# print y
+# print z
+
 # print 1 == 1.0
 # f = open('text', 'rb')
 # found = False

@@ -1,88 +1,19 @@
-import re, operator
+import re, random
 # Markov Chain For Shakespeare Plays
 # First Chain: Who is talking - {Othello: {2: Desdemona, 18: Desdemona, ...}, Iago.}
 
 # should line num be half-character
 # ~null: {1: Let}, Let: {1: him}, him, {}
-# Range: 1 <= x > x+1/3x
 # speakers = {'~null': {}, 'Othello': {2: 'Iago', 18: 'Desdemona', ...}, 'Iago': {}}
 # speeches = {'Othello': {'lines': {12: 1, 23: 2, 68: 3}, 'words': {'~null': {}, 'hi': {'.': 12, 'there'``}, '.':  }}}
-
-def findTotal(weights):
-    total = 0
-    for weight in weights:
-        if type(weight) == int or type(weight) == float:
-            total += weight
-    return total
-def pickItem(lastItem):
-    total = findTotal(lastItem.items())
-    rand = random.random()*total
-    for item in lastItem:
-        if type(lastItem[item]) == int or type(lastItem[item]) == float:
-            if rand<lastItem[item]:
-                return item
-            rand -= lastItem[item]
-def printSpeaker(speaker):
-    return speaker + ':\n'
-def printWord(word):
-    if word == r'[^\w\']':
-        return word
-    return ' ' + word
-def printLine():
-    return '\n'
-def makeLine(words, lineLength, lastWord):
-    text = ''
-    word = lastWord
-    for i in xrange(lineLength):
-        word = pickItem(words[word])
-        text += printWord(word)
-    return (text, word)
-def makeSpeech(words, lineLengths, speechLength):
-    text = ''
-    word = '~null'
-    lineLength = '~null'
-    # for i in xrange(speechLength):
-    #     lineLength = pickItem(lineLengths[lineLength])
-    #     line, word = makeLine(words, lineLength, wordprintWord(lineLength)
-    # return text
-def makeDialogue(words, lineLengths, speechLengths, speakers):
-    text = ''
-    speechLength = 0
-    speaker = pickItem(speakers['~null'])
-    for speech in range(100):
-        text += printSpeaker(speaker)
-        speaker = speakers[speaker]
-        text += makeSpeech(words[speaker], lineLengths[speaker], speechLength)
-
-
-# Treat punctuation and new lines as a word
-# Markov per character
-# Markov for which character
-# Markov
-# make prints
-# fix stage instructions
-
-# Make Markov Chains
-# fix line spacing with tabs
-# make a parser to separate the stage instructions from stats
-# char count w/ speakers?
-# fix general char count (not chars)
-
-form = {
-    'act': r'Act \d+:\n',
-    'scene': r'Scene \d+:\n',
-    'speaker': r'\n([a-z1-9]+):\n',
-    'line': r'([^\n]+)\n',
-    'stage': r'\[(.*)\]'
-}
-
+# can Make more sophisticated: what words are said more after certain speakers, speechLengths, etc. or at which point in the speech or dialogue
 
 def openData(doc):
     text = open(doc, 'r')
     text = text.read()
     return text
 
-# Make lastWord and lastWordNum speaker specific
+# change to if not last in set: set[last] = {}
 def textParse(text, form):
     speakers = {'~null': {}, '~last': '~null'}
     words = {}
@@ -138,9 +69,85 @@ def textParse(text, form):
         speechLengths[speaker][speechLengths[speaker]['~last']][lineNum] += 1
         speechLengths[speaker]['~last'] = lineNum
         speakers['~last'] = speaker
-    return {'speakers': speakers, 'words': words, 'lineLengths': lineLengths, 'speechLengths': speechLengths}
+    # return {'speakers': speakers, 'words': words, 'lineLengths': lineLengths, 'speechLengths': speechLengths}
+    return (speakers, words, lineLengths, speechLengths)
 
+def findTotal(weights):
+    total = 0
+    for weight in weights:
+        if type(weight) == int or type(weight) == float:
+            total += weight
+    return total
+
+def pickItem(lastItem):
+    total = findTotal(lastItem.values())
+    rand = random.random()*total
+    for item in lastItem:
+        if type(lastItem[item]) == int or type(lastItem[item]) == float:
+            if rand<lastItem[item]:
+                return item
+            rand -= lastItem[item]
+
+def printSpeaker(speaker):
+    return speaker + ':\n'
+
+def printWord(word):
+    if word == r'[^\w\']':
+        return word
+    return ' ' + word
+
+def printLine(line):
+    return line + '\n'
+
+def makeLine(words, lineLength, lastWord):
+    text = ''
+    word = lastWord
+    # correct for special character in the first spot (redo or next)
+    for i in xrange(lineLength):
+        word = pickItem(words[word])
+        text += printWord(word)
+    return (text, word)
+
+def makeSpeech(words, lineLengths, speechLength):
+    text = ''
+    lineLength = '~null'
+    word = '~null'
+    for i in xrange(speechLength):
+        lineLength = pickItem(lineLengths[lineLength])
+        line, word = makeLine(words, lineLength, word)
+        text += printLine(line)
+    return text
+
+# Keep last word and lineLength of speaker stored
+# reset last speechLength of each speaker to 0 (every speech check if it's their first in this dialogue)
+def makeDialogue(words, lineLengths, speechLengths, speakers, speechNum):
+    text = ''
+    speaker = '~null'
+    for i in xrange(speechNum):
+        speaker = pickItem(speakers[speaker])
+        speechLength = pickItem(speechLengths[speaker][speechLengths[speaker]['~last']])
+        text += printSpeaker(speaker)
+        print speechLength
+        text += makeSpeech(words[speaker], lineLengths[speaker], speechLength)
+        speechLengths[speaker]['last'] = speechLength
+    return text
+
+def fix(items):
+    for item in items
+        if len(item) == 0:
+            del item
+        elif type(item) == dict:
+
+form = {
+    'act': r'Act \d+:\n',
+    'scene': r'Scene \d+:\n',
+    'speaker': r'\n([a-z1-9]+):\n',
+    'line': r'([^\n]+)\n',
+    'stage': r'\[(.*)\]'
+}
 plaintext = openData('text')
-text = textParse(plaintext, form)
+speakers, words, lineLengths, speechLengths = textParse(plaintext, form)
+# print words['iago']['by']
+# print makeDialogue(words, lineLengths, speechLengths, speakers, 30)
 # print text['words']['iago']['is']
-print text['speechLengths']['iago']
+print speechLengths
