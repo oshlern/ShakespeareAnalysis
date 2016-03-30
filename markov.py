@@ -25,7 +25,7 @@ def textParse(text, form):
     text = re.sub('xxx:', '', text)
     text = re.sub('\n\n\n', '\n', text)
     # stageText = re.findall(r'\[.*\]')
-    # text = re.sub(r'\[.*\]', '~stage', text)
+    text = re.sub(r'\[.*\]', '~stage', text)
     for act in re.split(form['act'], text)[1:]:
         actLength = 0
         for scene in re.split(form['scene'], act)[1:]:
@@ -151,10 +151,10 @@ def pickItem(items, lastItem):
             rand -= lastItem[item]
 
 def printAct(act):
-    return 'Act ' + str(act) + ':\n'
+    return '                 ACT ' + str(act) + ':\n'
 
 def printScene(scene):
-    return 'Scene ' + str(scene) + ':\n'
+    return '                SCENE ' + str(scene) + ':\n'
 
 def printSpeaker(speaker):
     return speaker.capitalize() + ':\n'
@@ -185,7 +185,7 @@ def firstWord(words, lastWord):
 def makeLine(words, lineLength, lastWord):
     text = ''
     word = firstWord(words, lastWord)
-    text += '   ' + word.capitalize()
+    text += ' ' + word.capitalize()
     for i in xrange(lineLength-1):
         word = pickItem(words, word)
         text += printWord(word)
