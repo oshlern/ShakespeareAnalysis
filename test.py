@@ -1,5 +1,19 @@
 import re
-print r'124' in r'1234a'
+print '.a'.capitalize()
+# print r'a' == r'\w'
+# print '12314a'.count(r'\w')
+# class Counter(object):
+#     def __init__(self):
+#         self.matched = 0
+#     def __call__(self, matchobj):
+#         self.matched += 1
+#
+# counter = Counter()
+# x = re.sub(r'\d', counter, '12314a')
+# print x
+# print counter.matched
+
+# print r'124' in '12314a'
 # def jk(x):
 #     x = x + 1
 #
