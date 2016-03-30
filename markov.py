@@ -69,6 +69,8 @@ def textParse(text, form):
         speechLengths[speaker][speechLengths[speaker]['~last']][lineNum] += 1
         speechLengths[speaker]['~last'] = lineNum
         speakers['~last'] = speaker
+    # for speaker in speakers:
+
     # return {'speakers': speakers, 'words': words, 'lineLengths': lineLengths, 'speechLengths': speechLengths}
     return (speakers, words, lineLengths, speechLengths)
 
@@ -79,7 +81,10 @@ def findTotal(weights):
             total += weight
     return total
 
-def pickItem(lastItem):
+def pickItem(items, lastItem):
+    if len(items[lastItem]) == 0:
+        lastItem = '~null'
+    lastItem = items[lastItem]
     total = findTotal(lastItem.values())
     rand = random.random()*total
     for item in lastItem:
@@ -92,19 +97,30 @@ def printSpeaker(speaker):
     return speaker + ':\n'
 
 def printWord(word):
-    if word == r'[^\w\']':
+    if word in '.,;:-!?_()':
         return word
     return ' ' + word
 
 def printLine(line):
     return line + '\n'
 
+# correct for special character in the first spot (redo or next)
+def firstWord(words, lastWord):
+    word = pickItem(words, lastWord)
+    if word in '.,;:-!?_()':
+        for word in words[lastWord]:
+            if not word in '.,;:-!?_()':
+                return word
+        return pickItem(words, '~null')
+    else:
+        return word
+
 def makeLine(words, lineLength, lastWord):
     text = ''
-    word = lastWord
-    # correct for special character in the first spot (redo or next)
-    for i in xrange(lineLength):
-        word = pickItem(words[word])
+    word = firstWord(words, lastWord)
+    text += printWord(word)
+    for i in xrange(lineLength-1):
+        word = pickItem(words, word)
         text += printWord(word)
     return (text, word)
 
@@ -113,7 +129,7 @@ def makeSpeech(words, lineLengths, speechLength):
     lineLength = '~null'
     word = '~null'
     for i in xrange(speechLength):
-        lineLength = pickItem(lineLengths[lineLength])
+        lineLength = pickItem(lineLengths, lineLength)
         line, word = makeLine(words, lineLength, word)
         text += printLine(line)
     return text
@@ -124,19 +140,18 @@ def makeDialogue(words, lineLengths, speechLengths, speakers, speechNum):
     text = ''
     speaker = '~null'
     for i in xrange(speechNum):
-        speaker = pickItem(speakers[speaker])
-        speechLength = pickItem(speechLengths[speaker][speechLengths[speaker]['~last']])
+        speaker = pickItem(speakers, speaker)
+        speechLength = pickItem(speechLengths[speaker], speechLengths[speaker]['~last'])
         text += printSpeaker(speaker)
-        print speechLength
         text += makeSpeech(words[speaker], lineLengths[speaker], speechLength)
         speechLengths[speaker]['last'] = speechLength
     return text
 
-def fix(items):
-    for item in items
-        if len(item) == 0:
-            del item
-        elif type(item) == dict:
+# def fix(items):
+#     for item in items:
+#         if len(item) == 0:
+#             del item
+#         elif type(item) == dict:
 
 form = {
     'act': r'Act \d+:\n',
@@ -147,7 +162,7 @@ form = {
 }
 plaintext = openData('text')
 speakers, words, lineLengths, speechLengths = textParse(plaintext, form)
-# print words['iago']['by']
-# print makeDialogue(words, lineLengths, speechLengths, speakers, 30)
+# print words['emilia']['world']
+print makeDialogue(words, lineLengths, speechLengths, speakers, 30)
 # print text['words']['iago']['is']
-print speechLengths
+# print speechLengths

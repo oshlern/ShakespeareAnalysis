@@ -1,11 +1,12 @@
 import re
-def jk(x):
-    x = x + 1
-
-x = 1
-print x
-jk(x)
-print x
+print r'124' in r'1234a'
+# def jk(x):
+#     x = x + 1
+#
+# x = 1
+# print x
+# jk(x)
+# print x
 
 # def hi():
 #     return (1, 2, 3)
