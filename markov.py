@@ -15,17 +15,12 @@ def openData(doc):
 
 # change to if not last in set: set[last] = {}
 def textParse(text, form):
-    speakers = {'~null': {}, '~last': '~null'}
-    words = {}
-    playLength = 0
-    actLengths = []
-    sceneLengths = []
-    speechLengths = {}
-    lineLengths = {}
+    speakers, words, stage = {'~null': {}, '~last': '~null'}, {}, {'words': {}, 'lengths': []}
+    playLength, actLengths, sceneLengths, speechLengths, lineLengths = 0, [], [], {}, {}
     text = re.sub('xxx:', '', text)
     text = re.sub('\n\n\n', '\n', text)
-    # stageText = re.findall(r'\[.*\]')
-    text = re.sub(r'\[.*\]', '~stage', text)
+    stageText = re.findall(r'\[.*\]', text)
+    text = re.sub(r'\[.*\]', '\'stage\'', text)
     for act in re.split(form['act'], text)[1:]:
         actLength = 0
         for scene in re.split(form['scene'], act)[1:]:
@@ -47,6 +42,18 @@ def textParse(text, form):
                 lineNum = 0
                 for line in lines:
                     # chars = re.sub(r'([a-zA-z-\'])([^a-zA-z-\'])', r'\1', line)
+                    # chars = []
+                    # if '|stage|' in line:
+                    #     subsections = line.split('|stage|')
+                    #     print subsections
+                    #     for subsection in subsections:
+                    #         subsection = re.sub(r'([^\'])\b([^\'])', r'\1|break|\2', line)
+                    #         subsection = re.sub(' ', '', subsection)
+                    #         subsection = subsection.lower()
+                    #         # print subsection
+                    #         chars += subsection.split('|break|') + ['~stage']
+                    #     chars.pop() #extra stage
+                    # else:
                     chars = re.sub(r'([^\'])\b([^\'])', r'\1|break|\2', line)
                     chars = re.sub(' ', '', chars)
                     chars = chars.lower()
@@ -79,57 +86,22 @@ def textParse(text, form):
             actLength += 1
         actLengths += [actLength]
         playLength += 1
-    # text = re.sub(form['act'], '', text)
-    # text = re.sub(form['scene'], '', text)
-    # text = re.sub(form['stage'], '', text)
-    #
-    # speeches = text.split('|speaker|')[1:]
-    # for speech in speeches:
-    #     speakerAndLines = speech.split('|lines|')
-    #     speaker = speakerAndLines[0]
-    #     lines = speakerAndLines[1].split('\n')[:-1]
-    #     for superset in [words, lineLengths, speechLengths]:
-    #         if not speaker in superset:
-    #             superset[speaker] = {'~null': {}, '~last': '~null'}
-    #     if not speaker in speakers:
-    #         speakers[speaker] = {}
-    #     if not speaker in speakers[speakers['~last']]:
-    #         speakers[speakers['~last']][speaker] = 0
-    #     speakers[speakers['~last']][speaker] += 1
-    #     lineNum = 0
-    #     for line in lines:
-    #         # chars = re.sub(r'([a-zA-z-\'])([^a-zA-z-\'])', r'\1', line)
-    #         chars = re.sub(r'([^\'])\b([^\'])', r'\1|break|\2', line)
-    #         chars = re.sub(' ', '', chars)
-    #         chars = chars.lower()
-    #         chars = chars.split('|break|')
-    #         wordNum = 0
-    #         for word in chars:
-    #             if not word in words[speaker]:
-    #                 words[speaker][word] = {}
-    #             if not word in words[speaker][words[speaker]['~last']]:
-    #                 words[speaker][words[speaker]['~last']][word] = 0
-    #             words[speaker][words[speaker]['~last']][word] += 1
-    #             words[speaker]['~last'] = word
-    #             wordNum += 1
-    #         if not wordNum in lineLengths[speaker]:
-    #             lineLengths[speaker][wordNum] = {}
-    #         if not wordNum in lineLengths[speaker][lineLengths[speaker]['~last']]:
-    #             lineLengths[speaker][lineLengths[speaker]['~last']][wordNum] = 0
-    #         lineLengths[speaker][lineLengths[speaker]['~last']][wordNum] += 1
-    #         lineLengths[speaker]['~last'] = wordNum
-    #         lineNum += 1
-    #     if not lineNum in speechLengths[speaker]:
-    #         speechLengths[speaker][lineNum] = {}
-    #     if not lineNum in speechLengths[speaker][speechLengths[speaker]['~last']]:
-    #         speechLengths[speaker][speechLengths[speaker]['~last']][lineNum] = 0
-    #     speechLengths[speaker][speechLengths[speaker]['~last']][lineNum] += 1
-    #     speechLengths[speaker]['~last'] = lineNum
-    #     speakers['~last'] = speaker
-    # for speaker in speakers:
-
-    # return {'speakers': speakers, 'words': words, 'lineLengths': lineLengths, 'speechLengths': speechLengths}
-    return words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, playLength
+    for i in range(len(stageText)):
+        chars = re.sub(r'([^\'])\b([^\'])', r'\1|break|\2', stage)
+        chars = re.sub(' ', '', chars)
+        chars = chars.lower()
+        chars = chars.split('|break|')
+        length = 0
+        for word in chars:
+            if not word in stage['words']:
+                stage['words'][word] = {}
+            if not word in stage['words'][stage['~last']]:
+                stage['words'][stage['~last']][word] = 0
+            stage['words'][stage['~last']][word] += 1
+            stage['~last'] = word
+            length += 1
+        stage['lengths'] += [length]
+    return words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, playLength, stage
 
 def findTotal(weights):
     total = 0
@@ -170,6 +142,17 @@ def printWord(word):
     elif word[:2] == 'i\'':
         word = 'I\''
     return ' ' + word
+
+# fix lineBreaks of stage
+def makeStage(stage):
+    text = ' ['
+    stageLength = pickItem(stage, 'lengths')
+    word = random.choice(stage['words'].keys())
+    text += word
+    for i in xrange(stageLength-1):
+        word = pickItem(stage['words'], word)
+        text += printWord(word)
+    return text
 
 # correct for special character in the first spot (redo or next)
 def firstWord(words, lastWord):
@@ -229,7 +212,7 @@ form = {
     'stage': r'\[(.*)\]'
 }
 plaintext = openData('text')
-words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, playLength = textParse(plaintext, form)
+words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, playLength, stage = textParse(plaintext, form)
 # print words['emilia']['world']
 print makeDialogue(words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, 1)
 # print text['words']['iago']['is']

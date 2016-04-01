@@ -1,5 +1,6 @@
 import re
-print '.a'.capitalize()
+# print '.a'.capitalize()
+print 'ab' in 'abnormal'
 # print r'a' == r'\w'
 # print '12314a'.count(r'\w')
 # class Counter(object):
