@@ -146,12 +146,41 @@ def textParse(text, form):
 
 plaintext = openData('text')
 text = textParse(plaintext, form)
-words = speakerInfo(text['speakers']['roderigo'])['chars']
+def speakerPrint(speaker):
+    info = speakerInfo(text['speakers'][speaker])
+    sortedWords = sorted(info['words'].items(), key=operator.itemgetter(1))
+    sortedChars = sorted(info['chars'].items(), key=operator.itemgetter(1))
+    print '\nThe character ' + speaker + ' uses these symbols:'
+    # print speaker
+    # print ' uses these symbols:'
+    print sortedChars
+    print '\nand ' + speaker + ' uses these words:'
+    print sortedWords
+speakerPrint('emilia')
+
+def compareChar(speaker1, speaker2, char):
+    chars1 = speakerInfo(text['speakers'][speaker1])['chars']
+    chars2 = speakerInfo(text['speakers'][speaker2])['chars']
+    if not char in chars1:
+        return '\n' + speaker1 + ' doesn\'t use the character' + char + '\''
+    if not char in chars2:
+        return '\n' + speaker2 + ' doesn\'t use the character \'' + char + '\''
+    if chars1[char] == chars2[char]:
+        return '\n' + speaker1 + ' and ' + speaker2 + ' use the character: \'' + char  + '\' the same number of times'
+    comparison = 'more'
+    if chars1[char] < chars2[char]:
+        comparison = 'less'
+    return '\n' + str(speaker1) + ' uses the character \'' + str(char) + '\' ' + str(abs(chars1[char]-chars2[char])) + ' times ' + comparison + ' than ' + speaker2
+
+# print 'hi'
+
+print compareChar('othello', 'desdemona', '?')
+# words = speakerInfo(text['speakers']['roderigo'])['chars']
 # words = text['speakers']['iago']['words']
-largest = [0, '']
+# largest = [0, '']
 
 # print text['speakers']['iago']['chars']
-print sorted(words.items(), key=operator.itemgetter(1))
+# print sorted(words.items(), key=operator.itemgetter(1))
 # https://stackoverflow.com/questions/613183/sort-a-python-dictionary-by-value
 
 # print text['speakers']['iago']['lengthSpeeches']
