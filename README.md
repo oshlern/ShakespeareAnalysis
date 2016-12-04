@@ -1,13 +1,14 @@
-# Shakespeare Analysis
-This program is a parser and analyzer to get numerical data from texts of the Shakespeare format.
+# Bot
+Chat Bot
 
-Heavily influenced and borrowed from:
-Open Source Shakespeare:  www.opensourceshakespeare.org/
+Influenced by:
+Open Source Shakespeare (www.opensourceshakespeare.org)
 
 #### Overview:
-This program takes in a play and it's format, parses it into acts, scenes, speakers, speeches, and lines, and labels each with information (e.g. number of words). Then, it will be able to quickly print any part of the play, tell you information about different characters and scenes such as vocabularies (sorted in various ways), and compare the information of characters and plays, and much, much more (to be implemented).
+
 
 #### Data Structure:
+Fix:
 The main text splits into many layered subsets:
 
     set = {subsets, analysis, analysis2, ... }

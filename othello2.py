@@ -156,7 +156,9 @@ def speakerPrint(speaker):
     print sortedChars
     print '\nand ' + speaker + ' uses these words:'
     print sortedWords
-speakerPrint('emilia')
+# speakerPrint('emilia')
+print text.keys()
+
 
 def compareChar(speaker1, speaker2, char):
     chars1 = speakerInfo(text['speakers'][speaker1])['chars']
