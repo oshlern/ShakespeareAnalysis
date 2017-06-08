@@ -231,6 +231,13 @@ form = {
 plaintext = openData('text')
 words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, playLength = textParse(plaintext, form)
 # print words['emilia']['world']
-print makeDialogue(words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, 1)
+def saveData(doc, data):
+    output = open(doc,"w")
+    output.write(data)
+
+
+play = makeDialogue(words, lineLengths, speechLengths, speakers, sceneLengths, actLengths, 1)
+saveData("generated", play)
+print play
 # print text['words']['iago']['is']
 # print speechLengths
