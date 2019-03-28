@@ -454,7 +454,7 @@ at the other, with drums and trumpets
     To quit the bloody wrongs upon her foes.
 
             Re-enter LUCIUS, QUINTUS, MARTIUS, and
-   MUTIUS, the sons of ANDRONICUS, with their swords bloody
+            MUTIUS, the sons of ANDRONICUS, with their swords bloody
 
   LUCIUS. See, lord and father, how we have perform'd
     Our Roman rites: Alarbus' limbs are lopp'd,
@@ -2122,7 +2122,7 @@ writ upon them
     I read it in the grammar long ago.
   AARON. Ay, just- a verse in Horace. Right, you have it.
     [Aside]  Now, what a thing it is to be an ass!
-    Here's no sound jest! The old man hath found their guilt,
+    Here's no jest! The old man hath found their guilt,
     And sends them weapons wrapp'd about with lines
     That wound, beyond their feeling, to the quick.
     But were our witty Empress well afoot,

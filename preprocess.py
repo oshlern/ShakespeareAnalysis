@@ -26,13 +26,17 @@ def preprocess_text(text):
     # Label stage directions not labeled with brackets
     text = re.sub(r'([^\s|]|\n    )(   [ ]*)([^\[ ].*)((\n    [ ]+.*)*)\n(\||    \w)', r'\1\2[\3\4]\n\6', text)
     text = re.sub(r'\|scene\|(.*?)\n\|speaker\|', r'|scene|[\1]\n|speaker|', text, flags=re.DOTALL)
+
+    # Remove stage directions (temporary)
+    text = re.sub(r'\[.*?(\[.*?\].*?)?\]', '', text, flags=re.DOTALL)
+    # Remove end marker
+    text = re.sub(r'\|end\|', '', text)
     # Remove whitespace
-    text = re.sub(r'\n+', '\n', text)
+    text = re.sub(r'\s+\n', '\n', text)
+    text = re.sub(r'    ', '', text)
+    text = re.sub(r' +', ' ', text)
 
-    # text = re.sub(r'(^\s   [ ]*)([^\[].*)\n(\||    \w)', r'\1[\2]\n\3', text, flags=re.DOTALL)
-    # re.findall("           ([^ \[])(\w")
-
-    print(text[:100], text[-100:])
+    # print(text[:100], text[-100:])
     return text
 
 def preprocess(original, target):
