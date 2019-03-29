@@ -9,6 +9,8 @@ import re, random, preprocess
 # speeches = {'Othello': {'lines': {12: 1, 23: 2, 68: 3}, 'words': {'~null': {}, 'hi': {'.': 12, 'there'``}, '.':  }}}
 # can Make more sophisticated: what words are said more after certain speakers, speech_lens, etc. or at which point in the speech or dialogue
 
+nonwords = ['.', ',', ';', ':', '-', '!', '?', '_', '(', ')', '~last']
+
 class Play:
     def __init__(self, doc):
         self.openDoc(doc)
@@ -121,11 +123,11 @@ class Markov:
 
     # correct for special character in the first spot (redo or next)
     def firstWord(self, words, lastWord):
-        if all([word in '.,;:-!?_()' for word in words[lastWord]]):
+        if all([word in nonwords for word in words[lastWord]]):
             return self.pickItem(words, '~null')
 
         word = self.pickItem(words, lastWord)
-        while word in '.,;:-!?_()':
+        while word in nonwords:
             word = self.pickItem(words, lastWord)
         return word
 
@@ -182,7 +184,7 @@ class Markov:
         return line + '\n'
 
     def printWord(self, word):
-        if word in '.,;:-!?_()':
+        if word in nonwords:
             return word
         elif word == 'i':
             word = 'I'
@@ -194,10 +196,8 @@ class Markov:
         output = open(doc,"w")
         output.write(data)
 
-
-# print words['emilia']['world']
-
-play = Play('titus.txt')
-markov = Markov(play)
-generated = markov.makeDialogue(1)
-markov.saveData('generated_titus.txt', generated)
+if __name__ == '__main__':
+    play = Play('titus.txt')
+    markov = Markov(play)
+    generated = markov.makeDialogue(4)
+    markov.saveData('generated_titus.txt', generated)
