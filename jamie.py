@@ -2,8 +2,9 @@ import re, random, preprocess
 # Markov Chain For Shakespeare Plays
 # First Chain: Who is talking - {Othello: {2: Desdemona, 18: Desdemona, ...}, Iago.}
 
-# should line num be half-character
-# ~null: {1: Let}, Let: {1: him}, him, {}
+# Data sorted into markov subsequencies of words, line lengths, and speech lengths.
+# Calculated by speaker and speaker-ambiguous, as well as scene-specific and play-wide.
+# ~null: {1: Let}, Let: {1: him}, him: {...}
 # speakers = {'~null': {}, 'Othello': {2: 'Iago', 18: 'Desdemona', ...}, 'Iago': {}}
 # speeches = {'Othello': {'lines': {12: 1, 23: 2, 68: 3}, 'words': {'~null': {}, 'hi': {'.': 12, 'there'``}, '.':  }}}
 # can Make more sophisticated: what words are said more after certain speakers, speech_lens, etc. or at which point in the speech or dialogue
@@ -12,16 +13,14 @@ class Play:
     def __init__(self, doc):
         self.openDoc(doc)
 
-        self.speakers = {'~null': {}, '~last': '~null'}
         self.play = {}
-
-        self.actLengths = []
-        self.sceneLengths = []
-        self.speech_lens = {}
-        self.line_lens = {}
-        self.words = {}
+        self.speakers = {'~null': {}, '~last': '~null'}
+        self.words, self.line_lens, self.speech_lens = {'~null': {}, '~last': '~null'}, {'~null': {}, '~last': '~null'}, {'~null': {}, '~last': '~null'}
+        self.speaker_words, self.speaker_line_lens, self.speaker_speech_lens = {}, {}, {}
+        self.act_lengths, self.scene_lengths = [], []
 
         self.parseText()
+        self.resetLasts()
 
     def openDoc(self, doc):
         processed_file = "processed_" + doc
@@ -29,146 +28,77 @@ class Play:
         processed = open(processed_file, 'r')
         self.text = processed.read()
 
-    def saveData(self, doc, data):
-        output = open(doc,"w")
-        output.write(data)
-
     def update_occurences(self, item, superset):
         if not item in superset:
             superset[item] = {}
         superset[superset['~last']][item] = 1 + superset[superset['~last']].get(item, 0)
         superset['~last'] = item
 
-    # change to if not last in set: set[last] = {}
     def parseText(self):
-        # print(re.split('|act|', self.text)[1:])
-        # print(self.text[1000:10000])
-        for act_num, act in enumerate(self.text.split('|act|')[1:]):
+        acts = self.text.split('|act|')[1:]
+        for act_num, act in enumerate(acts):
             self.play[act_num] = {}
-            for scene_num, scene in enumerate(act.split('|scene|')[1:]):
-                self.play[act_num][scene_num] = {}
+            scenes = act.split('|scene|')[1:]
+            self.act_lengths.append(len(scenes))
+            for scene_num, scene in enumerate(scenes):
+                self.play[act_num][scene_num] = {'words': {'~null': {}, '~last': '~null'}, 'line_lens': {'~null': {}, '~last': '~null'}, 'speech_lens': {'~null': {}, '~last': '~null'},
+                                                 'speaker_words': {}, 'speaker_line_lens': {}, 'speaker_speech_lens': {},
+                                                 'speakers': {'~null': {}, '~last': '~null'}}
                 speeches = scene.split('|speaker|')[1:]
+                self.scene_lengths.append(len(speeches))
                 for speech in speeches:
                     speaker, lines = speech.split('|lines|')
                     lines = lines.split('\n')[:-1]
 
                     # Initialize speaker
-                    for superset in [self.words, self.line_lens, self.speech_lens]:
+                    for superset in [self.speaker_words, self.speaker_line_lens, self.speaker_speech_lens,
+                                     self.play[act_num][scene_num]['speaker_words'], self.play[act_num][scene_num]['speaker_line_lens'], self.play[act_num][scene_num]['speaker_speech_lens']]:
                         if not speaker in superset:
                             superset[speaker] = {'~null': {}, '~last': '~null'}
-                    self.update_occurences(speaker, self.speakers)
-                    # if not speaker in self.speakers:
-                    #     self.speakers[speaker] = {}
-                    # self.speakers[self.speakers['~last']][speaker] = 1 + self.speakers[self.speakers['~last']].get(speaker,0)
+                    for superset in [self.speakers, self.play[act_num][scene_num]['speakers']]:
+                        self.update_occurences(speaker, superset)
+
                     for line in lines:
-                        # if random.random() < 0.5:
-                        # print("TEST", line)
                         chars = re.sub(r'([a-zA-z-\'])([^a-zA-z-\'])', r'\1', line)
                         chars = re.sub(r'([^\'])\b([^\'])', r'\1|word_break|\2', line)
                         chars = re.sub(' ', '', chars)
                         chars = chars.lower()
                         words = chars.split('|word_break|')
                         for word in words:
-                            self.update_occurences(word, self.words[speaker])
-                            # if not word in self.words[speaker]:
-                            #     self.words[speaker][word] = {}
-                            # self.words[speaker][self.words[speaker]['~last']][word] = 1 + self.words[speaker][self.words[speaker]['~last']].get(word,0)
-                            # self.words[speaker]['~last'] = word
-                        self.update_occurences(len(words), self.line_lens[speaker])
-                        # line_len = len(words)
-                        # if not line_len in self.line_lens[speaker]:
-                        #     self.line_lens[speaker][line_len] = {}
-                        # self.line_lens[speaker][self.line_lens[speaker]['~last']][line_len] = 1 + self.line_lens[speaker][self.line_lens[speaker]['~last']].get(line_len, 0)
-                        # self.line_lens[speaker]['~last'] = line_len
-                    self.update_occurences(len(lines), self.speech_lens[speaker])
-                    # line_num = len(lines)
-                    # if not line_num in speech_lens[speaker]:
-            #             speech_lens[speaker][lineNum] = {}
-            #         if not lineNum in speech_lens[speaker][speech_lens[speaker]['~last']]:
-            #             speech_lens[speaker][speech_lens[speaker]['~last']][lineNum] = 0
-            #         speech_lens[speaker][speech_lens[speaker]['~last']][lineNum] += 1
-            #         speech_lens[speaker]['~last'] = lineNum
-            #         speakers['~last'] = speaker
-            #         sceneLength += 1
-            #     sceneLengths += [sceneLength]
-            #     actLength += 1
-            # actLengths += [actLength]
-    # text = re.sub(form['act'], '', text)
-    # text = re.sub(form['scene'], '', text)
-    # text = re.sub(form['stage'], '', text)
-    #
-    # speeches = text.split('|speaker|')[1:]
-    # for speech in speeches:
-    #     speakerAndLines = speech.split('|lines|')
-    #     speaker = speakerAndLines[0]
-    #     lines = speakerAndLines[1].split('\n')[:-1]
-    #     for superset in [words, line_lens, speech_lens]:
-    #         if not speaker in superset:
-    #             superset[speaker] = {'~null': {}, '~last': '~null'}
-    #     if not speaker in speakers:
-    #         speakers[speaker] = {}
-    #     if not speaker in speakers[speakers['~last']]:
-    #         speakers[speakers['~last']][speaker] = 0
-    #     speakers[speakers['~last']][speaker] += 1
-    #     lineNum = 0
-    #     for line in lines:
-    #         # chars = re.sub(r'([a-zA-z-\'])([^a-zA-z-\'])', r'\1', line)
-    #         chars = re.sub(r'([^\'])\b([^\'])', r'\1|break|\2', line)
-    #         chars = re.sub(' ', '', chars)
-    #         chars = chars.lower()
-    #         chars = chars.split('|break|')
-    #         wordNum = 0
-    #         for word in chars:
-    #             if not word in words[speaker]:
-    #                 words[speaker][word] = {}
-    #             if not word in words[speaker][words[speaker]['~last']]:
-    #                 words[speaker][words[speaker]['~last']][word] = 0
-    #             words[speaker][words[speaker]['~last']][word] += 1
-    #             words[speaker]['~last'] = word
-    #             wordNum += 1
-    #         if not wordNum in line_lens[speaker]:
-    #             line_lens[speaker][wordNum] = {}
-    #         if not wordNum in line_lens[speaker][line_lens[speaker]['~last']]:
-    #             line_lens[speaker][line_lens[speaker]['~last']][wordNum] = 0
-    #         line_lens[speaker][line_lens[speaker]['~last']][wordNum] += 1
-    #         line_lens[speaker]['~last'] = wordNum
-    #         lineNum += 1
-    #     if not lineNum in speech_lens[speaker]:
-    #         speech_lens[speaker][lineNum] = {}
-    #     if not lineNum in speech_lens[speaker][speech_lens[speaker]['~last']]:
-    #         speech_lens[speaker][speech_lens[speaker]['~last']][lineNum] = 0
-    #     speech_lens[speaker][speech_lens[speaker]['~last']][lineNum] += 1
-    #     speech_lens[speaker]['~last'] = lineNum
-    #     speakers['~last'] = speaker
-    # for speaker in speakers:
+                            # Words
+                            for superset in [self.words, self.play[act_num][scene_num]['words'],
+                                             self.speaker_words[speaker], self.play[act_num][scene_num]['speaker_words'][speaker]]:
+                                self.update_occurences(word, superset)
+                        # Line lengths
+                        for superset in [self.line_lens, self.play[act_num][scene_num]['line_lens'],
+                                         self.speaker_line_lens[speaker], self.play[act_num][scene_num]['speaker_line_lens'][speaker]]:
+                            self.update_occurences(len(words), superset)
+                    # Speech lengths
+                    for superset in [self.speech_lens, self.play[act_num][scene_num]['speech_lens'],
+                                     self.speaker_speech_lens[speaker], self.play[act_num][scene_num]['speaker_speech_lens'][speaker]]:
+                        self.update_occurences(len(lines), superset)
 
-    # return {'speakers': speakers, 'words': words, 'line_lens': line_lens, 'speech_lens': speech_lens}
-    # return words, line_lens, speech_lens, speakers, sceneLengths, actLengths, playLength
+    def resetLasts(self):
+        supersets = [self.words, self.line_lens, self.speech_lens]
+        for speaker in self.speakers:
+            if speaker in ['~null', '~last']:
+                continue
+            supersets += [self.speaker_words[speaker], self.speaker_line_lens[speaker], self.speaker_speech_lens[speaker]]
+        for act in self.play.values():
+            for scene in act.values():
+                supersets += [scene['words'], scene['line_lens'], scene['speech_lens']]
+                for speaker in scene['speakers']:
+                    if speaker in ['~null', '~last']:
+                        continue
+                    supersets += [scene['speaker_words'][speaker], scene['speaker_line_lens'][speaker], scene['speaker_speech_lens'][speaker]]
 
-def printAct(act):
-    return '                 ACT ' + str(act) + ':\n'
-
-def printScene(scene):
-    return '                SCENE ' + str(scene) + ':\n'
-
-def printSpeaker(speaker):
-    return speaker.capitalize() + ':\n'
-
-def printLine(line):
-    return line + '\n'
-
-def printWord(word):
-    if word in '.,;:-!?_()':
-        return word
-    elif word == 'i':
-        word = 'I'
-    elif word[:2] == 'i\'':
-        word = 'I\''
-    return ' ' + word
+        for superset in supersets:
+            superset['~last'] = '~null'
 
 class Markov:
-    def __init__(play):
+    def __init__(self, play):
         assert isinstance(play, Play)
+        self.play = play
 
     def findTotal(self, weights):
         total = 0
@@ -191,60 +121,83 @@ class Markov:
 
     # correct for special character in the first spot (redo or next)
     def firstWord(self, words, lastWord):
-        word = self.pickItem(words, lastWord)
-        if word in '.,;:-!?_()':
-            for word in words[lastWord]:
-                if not word in '.,;:-!?_()':
-                    return word
+        if all([word in '.,;:-!?_()' for word in words[lastWord]]):
             return self.pickItem(words, '~null')
-        else:
-            return word
+
+        word = self.pickItem(words, lastWord)
+        while word in '.,;:-!?_()':
+            word = self.pickItem(words, lastWord)
+        return word
 
     def makeLine(self, words, lineLength, lastWord):
         text = ''
         word = self.firstWord(words, lastWord)
-        text += ' ' + word.capitalize()
+        text += word.capitalize()
         for i in range(lineLength-1):
             word = self.pickItem(words, word)
-            text += printWord(word)
+            text += self.printWord(word)
         return (text, word)
 
-    def makeSpeech(self, words, line_lens, speechLength, lastWord):
-        text = ''
+    def makeSpeech(self, words, line_lens, speech_length, lastWord):
+        text = '\t'
         lineLength = '~null'
         word = lastWord
-        for i in range(speechLength):
+        for i in range(speech_length):
             lineLength = self.pickItem(line_lens, lineLength)
-            line, word = makeLine(words, lineLength, word)
-            text += printLine(line)
+            line, word = self.makeLine(words, lineLength, word)
+            text += '\t' + self.printLine(line)
         return text + '\n', word
 
     # Keep last word and lineLength of speaker stored
-    # reset last speechLength of each speaker to 0 (every speech check if it's their first in this dialogue)
-    def makeDialogue(self, words, line_lens, speech_lens, speakers, sceneLengths, actLengths, playLength):
+    # reset last speech_length of each speaker to 0 (every speech check if it's their first in this dialogue)
+    def makeDialogue(self, playLength):
         text = ''
         speaker = '~null'
         for act in range(1, playLength + 1):
-            text += printAct(act)
-            actLength = random.choice(actLengths)
-            for scene in range(1, actLength + 1):
-                text += printScene(scene)
-                sceneLength = random.choice(sceneLengths)
-                for speech in range(sceneLength):
-                    speaker = self.pickItem(speakers, speaker)
-                    speechLength = self.pickItem(speech_lens[speaker], speech_lens[speaker]['~last'])
-                    speechText, words[speaker]['~last'] = makeSpeech(words[speaker], line_lens[speaker], speechLength, words[speaker]['~last'])
-                    speech_lens[speaker]['~last'] = speechLength
-                    text += printSpeaker(speaker) + speechText
+            text += self.printAct(act)
+            act_length = random.choice(self.play.act_lengths)
+            for scene in range(1, act_length + 1):
+                text += self.printScene(scene)
+                scene_length = random.choice(self.play.scene_lengths)
+                for speech in range(scene_length):
+                    speaker = self.pickItem(self.play.speakers, speaker)
+                    speech_length = self.pickItem(self.play.speaker_speech_lens[speaker], self.play.speaker_speech_lens[speaker]['~last'])
+                    # print(self.play.speaker_words[speaker])
+                    # print(self.play.speaker_line_lens[speaker])
+                    speechText, self.play.speaker_words[speaker]['~last'] = self.makeSpeech(self.play.speaker_words[speaker], self.play.speaker_line_lens[speaker], speech_length, self.play.speaker_words[speaker]['~last'])
+                    self.play.speaker_speech_lens[speaker]['~last'] = speech_length
+                    text += self.printSpeaker(speaker) + speechText
         return text
+
+    def printAct(self, act):
+        return 'ACT {}:\n'.format(act)
+
+    def printScene(self, scene):
+        return 'SCENE {}:\n'.format(str(scene))
+
+    def printSpeaker(self, speaker):
+        return " {}:\n".format(speaker.capitalize())
+
+    def printLine(self, line):
+        return line + '\n'
+
+    def printWord(self, word):
+        if word in '.,;:-!?_()':
+            return word
+        elif word == 'i':
+            word = 'I'
+        elif word[:2] == 'i\'':
+            word = 'I\''
+        return ' ' + word
+
+    def saveData(self, doc, data):
+        output = open(doc,"w")
+        output.write(data)
 
 
 # print words['emilia']['world']
 
 play = Play('titus.txt')
-
-# play = makeDialogue(words, line_lens, speech_lens, speakers, sceneLengths, actLengths, 1)
-# saveData("generated", play)
-# print play
-# print text['words']['iago']['is']
-# print speech_lens
+markov = Markov(play)
+generated = markov.makeDialogue(1)
+markov.saveData('generated_titus.txt', generated)
