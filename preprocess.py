@@ -10,10 +10,7 @@ def preprocess_text(text):
     text = text[beginning:end] + '|end|'
 
     # Remove copyright stuff
-    text = re.sub("<<.+>>", "", text, flags=re.DOTALL)
-
-    # Remove whitespace
-    text = re.sub(r'[\n]+', '\n', text)
+    text = re.sub("<<.+?>>", "", text, flags=re.DOTALL)
 
     # text = re.sub(r'\n  [ ]+([A-Z1-9 ]+)\. ', r'\n|speaker|\1|lines|    ', text) ACT 
 
@@ -51,6 +48,6 @@ def preprocess(original, target):
 
 if __name__ == "__main__":
     original = "titus.txt"
-    target = "filtered_titus.txt"
+    target = "processed_titus.txt"
 
     play = preprocess(original, target)
