@@ -37,12 +37,18 @@ class Analyzer:
             word_set_2 = [word_set_2]
         occurences_A = [self.count_occurences(word_set_1, scenes_A, speaker), self.count_occurences(word_set_2, scenes_A, speaker)]
         occurences_B = [self.count_occurences(word_set_1, scenes_B, speaker), self.count_occurences(word_set_2, scenes_B, speaker)]
-        ratio_A = occurences_A[0]/occurences_A[1]
-        ratio_B = occurences_B[0]/occurences_B[1]
+        if occurences_A[0] == 0 or occurences_A[1] == 0:
+            ratio_A = 0
+        else:
+            ratio_A = occurences_A[0]/occurences_A[1]
+        if occurences_B[0] == 0 or occurences_B[1] == 0:
+            ratio_B = 0
+        else:
+            ratio_B = occurences_B[0]/occurences_B[1]
         # print(ratio_A, ratio_B)
         print("\t{}\t{}".format(word_set_1[0], word_set_2[0]))
-        print("A\t{}\t{}".format(occurences_A[0], occurences_A[1]))
-        print("B\t{}\t{}".format(occurences_B[0], occurences_B[1]))
+        print("Part A\t{}\t{}".format(occurences_A[0], occurences_A[1]))
+        print("Part B\t{}\t{}".format(occurences_B[0], occurences_B[1]))
 
     def compare_word(self, word_set, scenes_A, scenes_B, speaker=None):
         if type(word_set) == str:
@@ -51,8 +57,8 @@ class Analyzer:
         occurences_B = self.count_occurences(word_set, scenes_B, speaker)
         ration = occurences_A/occurences_B
         print("\t{}".format(word_set[0]))
-        print("A\t{}".format(occurences_A))
-        print("B\t{}".format(occurences_B))
+        print("Part A\t{}".format(occurences_A))
+        print("Part B\t{}".format(occurences_B))
 
     def count_occurences(self, word_set, scenes=None, speaker=None):
         if type(word_set) == str:
@@ -147,10 +153,10 @@ class Analyzer:
             a = self.percent_occurence(word, scenes=scenes_a)
             b = self.percent_occurence(word, scenes=scenes_b)
             if a == 0:
-                print("{}\tOnly part B!".format(word))
+                print("{}\tOnly Part B!".format(word))
                 continue
             if b == 0:
-                print("{}\tOnly part A!".format(word))
+                print("{}\tOnly Part A!".format(word))
                 continue
             ratio = a/b
             thresh = 2
@@ -189,13 +195,30 @@ class Analyzer:
                 if ratio > best_ratio:
                     best_ratio = ratio
                     best_partition = copy.deepcopy((part_a, part_b))
-
+        # Cleanup
+        for part in best_partition:
+            for act in self.play.acts:
+                if part[act] == []:
+                    del part[act]
         return best_ratio, best_partition
 
+    def counter_part(self, part_a):
+        part_b = {}
+        for act in self.play.acts:
+            for scene in self.play.acts[act]:
+                if not scene in part_a.get(act, []):
+                    if not act in part_b:
+                        part_b[act] = []
+                    part_b[act].append(scene)
+        return part_b
 
 if __name__ == '__main__':
     play = Play('titus.txt')
     analyzer = Analyzer(play)
+
+    part_a = {0: [0], 1: [0,1], 3: [0]}
+    part_b = {1: [2,3], 2: [0,1], 3: [1,2,3], 4: [0,1,2]}
+
     broth = ['brother', 'brothers']
     breth = ['bretheren', 'brethren', 'brethen']
     honour = ['honour', 'noble']
@@ -203,31 +226,35 @@ if __name__ == '__main__':
     queen = ['queen']
     empress = ['empress']
     hands = ['hand', 'hands']
-    part_a = {0: [0], 1: [0,1], 3: [0]}
-    part_b = {1: [2,3], 2: [0,1], 3: [1,2,3], 4: [0,1,2]}
-    # for act in play.acts:
-    #     part_b[act] = []
-    #     for scene in play.acts[act]:
-    #         if not scene in part_a.get(act, []):
-    #             part_b[act].append(scene)
-    # print(part_b)
+    friend = ['friend', 'friends']
 
-    # print(analyzer.count_occurences(['brother', 'brothers']))
-    # analyzer.compare_words(broth, breth, part_a, part_b)
-    # analyzer.compare_words(queen, empress, part_a, part_b)
-    # analyzer.compare_words(honour, dead, part_a, part_b)
-    # analyzer.compare_word(['friend', 'friends'], part_a, part_b)
     # print(play.play[0][0]['words'])
-    # words = analyzer.filter(14, speaker='TITUS')
-    # print(analyzer.sort(words))#, 10))
 
-    # print(analyzer.show_occurences(broth))
-    print(analyzer.show_occurences(hands))
+    print("Number of uses of {}: {}".format(broth, analyzer.count_occurences(broth)))
+
+    print("Uses of {}: {}".format('bretheren', analyzer.show_occurences('bretheren')))
+    print("Uses of {}: {}".format('brethren', analyzer.show_occurences('brethren')))
+    print("Uses of {}: {}".format('brethen', analyzer.show_occurences('brethen')))
+    print("Uses of {}: {}\n".format(breth, analyzer.show_occurences(breth)))
+
+    print("Most used words: {}\n".format(analyzer.sort(analyzer.filter(25), 20)))
+
+    # print("Uses of {}: {}".format(hands, analyzer.show_occurences(hands)))
+    print("Part A: {}\nPart B: {}\n".format(part_a, part_b))
+    analyzer.compare_word(friend, part_a, part_b)
     analyzer.compare_word(hands, part_a, part_b)
-    print(analyzer.partition(hands))
-    # print(analyzer.show_occurences('bretheren'))
-    # print(analyzer.show_occurences('brethren'))
-    # print(analyzer.show_occurences('brethen'))
+
+    ratio, partition = analyzer.partition(hands)
+    print("\nBest partition for hands (with ratio {}): \n\tPart A {}\n\tPart B {}\n".format(ratio, partition[0], partition[1]))
+
+    analyzer.compare_words(broth, breth, part_a, part_b)
+    analyzer.compare_words(queen, empress, part_a, part_b)
+    analyzer.compare_words(honour, dead, part_a, part_b)
+
+    print("\nMost used words by {}: {}\n".format('TITUS', analyzer.sort(analyzer.filter(14, speaker='TITUS'), 15)))
+
+
+
 
 
 interesting = ['honour', 'friends', 'moor', ('queen', 'empress'), 'blood', 'hands', 'death', 'love', 'noble']

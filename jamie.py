@@ -37,12 +37,14 @@ class Play:
 
     def parseText(self):
         acts = self.text.split('|act|')[1:]
-        for act_num, act in enumerate(acts):
+        for act_i, act in enumerate(acts):
+            act_num = act_i + 1
             self.words[act_num] = {}
             self.lengths[act_num] = {}
             self.acts[act_num] = []
             scenes = act.split('|scene|')[1:]
-            for scene_num, scene in enumerate(scenes):
+            for scene_i, scene in enumerate(scenes):
+                scene_num = scene_i + 1
                 self.words[act_num][scene_num] = {}
                 self.lengths[act_num][scene_num] = 0
                 self.acts[act_num].append(scene_num)
