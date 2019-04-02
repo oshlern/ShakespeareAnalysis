@@ -18,6 +18,8 @@ class Play:
         self.words = {}
         self.speaker_words = {}
         self.acts = {}
+        self.lengths = {}
+        self.speaker_lengths = {}
 
         self.parseText()
 
@@ -37,10 +39,12 @@ class Play:
         acts = self.text.split('|act|')[1:]
         for act_num, act in enumerate(acts):
             self.words[act_num] = {}
+            self.lengths[act_num] = {}
             self.acts[act_num] = []
             scenes = act.split('|scene|')[1:]
             for scene_num, scene in enumerate(scenes):
                 self.words[act_num][scene_num] = {}
+                self.lengths[act_num][scene_num] = 0
                 self.acts[act_num].append(scene_num)
                 speeches = scene.split('|speaker|')[1:]
                 for speech in speeches:
@@ -50,22 +54,22 @@ class Play:
                     # Initialize speaker_words dict
                     if not speaker in self.speaker_words:
                         self.speaker_words[speaker] = {}
+                    if not speaker in self.speaker_lengths:
+                        self.speaker_lengths[speaker] = {}
+                    if not act_num in self.speaker_lengths[speaker]:
+                        self.speaker_lengths[speaker][act_num] = {}
+                    if not scene_num in self.speaker_lengths[speaker][act_num]:
+                        self.speaker_lengths[speaker][act_num][scene_num] = 0
 
                     for line in lines:
-                        if 'brethren' in line:
-                            print(line)
                         # chars = re.sub(r'([a-zA-z-\'])([^a-zA-z-\' ])', r'\1', line)
                         chars = re.sub(r'(\w+)\'\w*', r'\1', line)
                         chars = re.sub(r'\'(\w+?)\b', r'\1', chars)
-                        if 'brethren' in chars:
-                            print(chars)
                         chars = re.sub(r'([^\'])\b([^\'])', r'\1|word_break|\2', chars)
                         # chars = re.sub(r'\b', r'|word_break|', chars)
                         chars = re.sub(' ', '', chars)
                         chars = chars.lower()
                         words = chars.split('|word_break|')
-                        if 'breth' in chars:
-                            print(words)
                         for word in words:
                             # Could optimize if statements but chose not to for readability
                             for word_set in [self.words, self.speaker_words[speaker]]:
@@ -76,6 +80,9 @@ class Play:
                                 if not scene_num in word_set[word][act_num]:
                                     word_set[word][act_num][scene_num] = 0
                                 word_set[word][act_num][scene_num] += 1
+                        self.lengths[act_num][scene_num] += len(words)
+                        self.speaker_lengths[speaker][act_num][scene_num] += len(words)
+
 
     def saveData(self, doc, data):
         output = open(doc,"w")
